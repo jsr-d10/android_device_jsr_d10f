@@ -16,6 +16,12 @@ for patch in `find -type f -name '*.patch'|cut -d / -f 2-|sort`; do
 	repo_to_patch="$(if dirname $patch|grep -q /; then dirname $patch; else dirname $patch |tr '_' '/'|tr '+' '_'; fi)"
 
 	echo -n "Is $repo_to_patch patched for '$title' ?.. "
+
+        if [ ! -d $build_root/$repo_to_patch ] ; then
+                echo "$repo_to_patch NOT EXIST! Go away and check your manifests. Skipping this patch."
+                continue
+        fi
+
 	pushd "$build_root/$repo_to_patch" > /dev/null
 	if (git log |fgrep -qm1 "$title" ); then
 		echo -n Yes
