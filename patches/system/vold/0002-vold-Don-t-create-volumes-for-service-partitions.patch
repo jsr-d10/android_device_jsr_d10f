@@ -1,0 +1,63 @@
+From 531606f1d5589fccc68b839e29984fb7b206b00d Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 28 Feb 2016 09:03:54 +0300
+Subject: [PATCH 2/2] vold: Don't create volumes for service partitions
+
+This fixes huge error notifications at every boot
+on devices with broken eMMC
+
+Change-Id: I68c9f00dd3cf470a1388b83c9a509540d0ab4b01
+---
+ Disk.cpp | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/Disk.cpp b/Disk.cpp
+index 4678364..8aaf397 100644
+--- a/Disk.cpp
++++ b/Disk.cpp
+@@ -74,6 +74,19 @@ static const char* kGptBasicData = "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7";
+ static const char* kGptAndroidMeta = "19A710A2-B3CA-11E4-B026-10604B889DCF";
+ static const char* kGptAndroidExpand = "193D1EA4-B3CA-11E4-B075-10604B889DCF";
+ 
++static const char* kServicePartitionNames[] = {
++    "sbl1bak",
++    "abootbak",
++    "rpmbak",
++    "tzbak",
++    "pad",
++    "modem",
++    "persist",
++    "cache",
++    "system",
++    "userdata"
++};
++
+ enum class Table {
+     kUnknown,
+     kMbr,
+@@ -312,6 +325,22 @@ status_t Disk::readPartitions() {
+             } else if (table == Table::kGpt) {
+                 const char* typeGuid = strtok(nullptr, kSgdiskToken);
+                 const char* partGuid = strtok(nullptr, kSgdiskToken);
++                const char* partName = strtok(nullptr, kSgdiskToken);
++
++               unsigned int iter=0;
++               bool servicePartition=false;
++                for (iter=0; iter < (sizeof(kServicePartitionNames)/sizeof(kServicePartitionNames[0])); iter++) {
++                    if(!strcasecmp(partName, kServicePartitionNames[iter])) {
++                        servicePartition=true;
++                        break;
++                    }
++                else
++                    servicePartition=false;
++                }
++                if (servicePartition) {
++                    LOG(WARNING) << "Disk::readPartitions(): Skipping service partition " << partName;
++                    continue;
++                }
+ 
+                 if (!strcasecmp(typeGuid, kGptBasicData)) {
+                     createPublicVolume(partDevice);
+-- 
+2.5.0
+
