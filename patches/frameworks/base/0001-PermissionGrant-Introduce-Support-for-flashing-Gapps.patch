@@ -1,4 +1,4 @@
-From a5589577666332ad655047095ef14cf1fc827333 Mon Sep 17 00:00:00 2001
+From b50cf5516e72091ee741ffb4762eff8f8eab3731 Mon Sep 17 00:00:00 2001
 From: Alex Naidis <alex.naidis@linux.com>
 Date: Sat, 31 Oct 2015 20:17:39 +0100
 Subject: [PATCH] PermissionGrant: Introduce Support for flashing Gapps
@@ -18,7 +18,7 @@ Signed-off-by: Alex Naidis <alex.naidis@linux.com>
  1 file changed, 89 insertions(+)
 
 diff --git a/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java b/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
-index df023fd..8f4aa1f 100644
+index 273c20a..c667d82 100644
 --- a/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
 +++ b/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
 @@ -1,5 +1,6 @@
@@ -28,8 +28,8 @@ index df023fd..8f4aa1f 100644
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
-@@ -572,6 +573,92 @@ final class DefaultPermissionGrantPolicy {
-                 grantRuntimePermissionsLPw(musicPackage, STORAGE_PERMISSIONS, userId);
+@@ -594,6 +595,92 @@ final class DefaultPermissionGrantPolicy {
+                 }
              }
  
 +            // Google Account
@@ -82,22 +82,22 @@ index df023fd..8f4aa1f 100644
 +                    "com.google.android.syncadapters.contacts", userId);
 +            if (googlecontactssyncPackage != null) {
 +                grantRuntimePermissionsLPw(googlecontactssyncPackage, CONTACTS_PERMISSIONS, userId);
-+            }			
++            }
 +
 +			// Google Backup Transport
 +            PackageParser.Package googlebackuptransportPackage = getDefaultProviderAuthorityPackageLPr(
 +                    "com.google.android.backuptransport", userId);
 +            if (googlebackuptransportPackage != null) {
 +                grantRuntimePermissionsLPw(googlebackuptransportPackage, CONTACTS_PERMISSIONS, userId);
-+            }			
-+			
++            }
++
 +			// Google Play Framework
 +            PackageParser.Package gsfcorePackage = getDefaultProviderAuthorityPackageLPr(
 +                    "com.google.android.gsf", userId);
 +            if (gsfcorePackage != null) {
 +                grantRuntimePermissionsLPw(gsfcorePackage, CONTACTS_PERMISSIONS, userId);
 +                grantRuntimePermissionsLPw(gsfcorePackage, PHONE_PERMISSIONS, userId);
-+            }		
++            }
 +
 +			// Google Setup Wizard
 +            PackageParser.Package setupwizardPackage = getDefaultProviderAuthorityPackageLPr(
@@ -105,7 +105,7 @@ index df023fd..8f4aa1f 100644
 +            if (setupwizardPackage != null) {
 +                grantRuntimePermissionsLPw(setupwizardPackage, CONTACTS_PERMISSIONS, userId);
 +                grantRuntimePermissionsLPw(setupwizardPackage, PHONE_PERMISSIONS, userId);
-+            }	
++            }
 +
 +			// Google Play Store
 +            PackageParser.Package vendingPackage = getDefaultProviderAuthorityPackageLPr(
@@ -115,13 +115,13 @@ index df023fd..8f4aa1f 100644
 +                grantRuntimePermissionsLPw(vendingPackage, PHONE_PERMISSIONS, userId);
 +                grantRuntimePermissionsLPw(vendingPackage, LOCATION_PERMISSIONS, userId);
 +                grantRuntimePermissionsLPw(vendingPackage, SMS_PERMISSIONS, userId);
-+            }	
-+				
-+			
++            }
++
++
              mService.mSettings.onDefaultRuntimePermissionsGrantedLPr(userId);
          }
      }
-@@ -591,7 +678,9 @@ final class DefaultPermissionGrantPolicy {
+@@ -616,7 +703,9 @@ final class DefaultPermissionGrantPolicy {
          if (doesPackageSupportRuntimePermissions(smsPackage)) {
              grantRuntimePermissionsLPw(smsPackage, PHONE_PERMISSIONS, userId);
              grantRuntimePermissionsLPw(smsPackage, CONTACTS_PERMISSIONS, userId);
