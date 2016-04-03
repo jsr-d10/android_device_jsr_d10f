@@ -1,0 +1,102 @@
+From 03e09e01bfa54d80df22171d66ccb633aed8abc6 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 3 Apr 2016 17:35:17 +0300
+Subject: [PATCH 3/3] [TORCH] Use sysfs interface for SystemUI
+ FlashlightController
+
+This should improve stability, performance and battery consumption of Flashlight QuickSettings title
+
+Change-Id: I65cd7a07f559d3e7f4cf505c164e2b50f50283cb
+---
+ .../statusbar/policy/FlashlightController.java     | 34 +++++++++++++++-------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
+index 52a2825..3575433 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
+@@ -36,6 +36,8 @@ import android.util.Log;
+ 
+ import com.android.systemui.R;
+ 
++import java.io.FileWriter;
++import java.io.IOException;
+ import java.lang.ref.WeakReference;
+ import java.util.ArrayList;
+ 
+@@ -51,13 +53,19 @@ public class FlashlightController {
+     private static final int DISPATCH_CHANGED = 1;
+     private static final int DISPATCH_AVAILABILITY_CHANGED = 2;
+ 
++    public static final int OFF  = 0;
++    public static final int ON   = 127;
++    public static final int HIGH = 255;
++
++    private FileWriter mFlashDeviceWriter = null;
++
+     private static boolean mUseWakeLock;
+ 
+     private static final String ACTION_TURN_FLASHLIGHT_OFF =
+             "com.android.systemui.action.TURN_FLASHLIGHT_OFF";
+ 
+     private Context mContext;
+-    private final CameraManager mCameraManager;
++    private final CameraManager mCameraManager = null;
+     /** Call {@link #ensureHandler()} before using */
+     private Handler mHandler;
+ 
+@@ -67,8 +75,8 @@ public class FlashlightController {
+     /** Lock on {@code this} when accessing */
+     private boolean mFlashlightEnabled;
+ 
+-    private final String mCameraId;
+-    private boolean mTorchAvailable;
++    private final String mCameraId = null;
++    private boolean mTorchAvailable = true;
+ 
+     private WakeLock mWakeLock;
+ 
+@@ -92,18 +100,17 @@ public class FlashlightController {
+ 
+     public FlashlightController(Context mContext) {
+         this.mContext = mContext;
+-        mCameraManager = (CameraManager) mContext.getSystemService(Context.CAMERA_SERVICE);
+ 
+-        String cameraId = null;
++        FileWriter FlashDeviceWriter = null;
++        Log.d(TAG, "Initializing");
+         try {
+-            cameraId = getCameraId();
++            FlashDeviceWriter = new FileWriter("/sys/class/leds/torch-light/brightness");
+         } catch (Throwable e) {
+             Log.e(TAG, "Couldn't initialize.", e);
+             return;
+         } finally {
+-            mCameraId = cameraId;
++            mFlashDeviceWriter = FlashDeviceWriter ;
+         }
+-
+         mUseWakeLock = mContext.getResources().getBoolean(R.bool.flashlight_use_wakelock);
+ 
+         PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+@@ -130,8 +137,15 @@ public class FlashlightController {
+                 }
+ 
+                 try {
+-                    mCameraManager.setTorchMode(mCameraId, enabled);
+-                } catch (CameraAccessException e) {
++                    if (mFlashDeviceWriter != null) {
++                        int level = enabled ? ON : OFF;
++                        Log.d(TAG, "Setting torch level to " + String.valueOf(level));
++                        mFlashDeviceWriter.write(String.valueOf(level));
++                        mFlashDeviceWriter.flush();
++                    } else {
++                        Log.e(TAG, "mFlashDeviceWriter == null!!");
++                    }
++                } catch (Exception e) {
+                     Log.e(TAG, "Couldn't set torch mode", e);
+                     mFlashlightEnabled = false;
+                     pendingError = true;
+-- 
+2.5.0
+
