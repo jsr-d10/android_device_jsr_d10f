@@ -1,7 +1,7 @@
-From c6042b2c6b06fd482c68c59ad202dac7b9aa992f Mon Sep 17 00:00:00 2001
+From 6866a8b1b8180b87b95c65d54c8918d01ab8fe53 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Fri, 4 Dec 2015 22:02:48 +0300
-Subject: [PATCH] [STORAGES] Skip mDisks.push_back for mmcblk0rpmb
+Subject: [PATCH 1/2] [STORAGES] Skip mDisks.push_back for mmcblk*rpmb
 
 This fixes issue with this partition that have been added as
 second primary storage (unmountable) and thus confusing system
@@ -39,25 +39,27 @@ Volumes:
 
 Change-Id: I5b0a5044cfc7adea6741e3c8ec2ae4dd3312c508
 ---
- VolumeManager.cpp | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ VolumeManager.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/VolumeManager.cpp b/VolumeManager.cpp
-index 2f623ef..392e521 100755
+index 2f623ef..45fafd3 100755
 --- a/VolumeManager.cpp
 +++ b/VolumeManager.cpp
-@@ -313,7 +313,10 @@ void VolumeManager::handleBlockEvent(NetlinkEvent *evt) {
+@@ -313,7 +313,12 @@ void VolumeManager::handleBlockEvent(NetlinkEvent *evt) {
                                  source->getPartNum(),
                                  source->getFsType(), source->getMntOpts());
                  disk->create();
 -                mDisks.push_back(std::shared_ptr<android::vold::Disk>(disk));
 +                if(! strcmp(evt->findParam("DEVNAME"), "mmcblk0rpmb")) // Fix for rpmb disk storage
 +                    LOG(DEBUG) << "Skipping mDisks.push_back for mmcblk0rpmb " << major << ":" << minor;
++                else if(! strcmp(evt->findParam("DEVNAME"), "mmcblk1rpmb")) // Fix for rpmb disk storage if booted from SD
++                    LOG(DEBUG) << "Skipping mDisks.push_back for mmcblk1rpmb " << major << ":" << minor;
 +                else
 +                    mDisks.push_back(std::shared_ptr<android::vold::Disk>(disk));
                  break;
              }
          }
 -- 
-2.5.0
+1.9.1
 
