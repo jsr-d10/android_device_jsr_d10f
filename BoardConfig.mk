@@ -89,8 +89,7 @@ MAX_EGL_CACHE_SIZE := 2048*1024
 BOARD_HARDWARE_CLASS := device/jsr/d10f/cmhw/
 
 # Init
-TARGET_INIT_VENDOR_LIB := libinit_msm
-TARGET_LIBINIT_DEFINES_FILE := device/jsr/d10f/init/init_d10f.cpp
+TARGET_LIBINIT_DEFINES_FILE := $(LOCAL_PATH)/init/init_d10f.cpp
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/jsr/msm8226
