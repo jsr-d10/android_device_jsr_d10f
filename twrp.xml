@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <project name="omnirom/android_bootable_recovery"                 path="bootable/recovery-twrp"         remote="github" revision="android-6.0" />
-  <project name="CyanogenMod/android_external_busybox"              path="external/busybox" />
-</manifest>
