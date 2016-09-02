@@ -1,4 +1,4 @@
-From 8d67b293b07ed16045906070dab1e8d3744fc239 Mon Sep 17 00:00:00 2001
+From 7fdaf54aa7ed067384e37b5878955155bde96537 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Mon, 28 Mar 2016 04:50:24 +0300
 Subject: [PATCH 5/7] [TOOLS] Add rawread tool
@@ -7,17 +7,17 @@ Change-Id: Ie7edeb79a41eb8c0e4afbc172bf989cadf0f834f
 ---
  Android.mk          |  4 ++-
  prebuilt/Android.mk |  1 +
- rawread/Android.mk  | 11 ++++++++
+ rawread/Android.mk  | 11 +++++++
  rawread/rawread.c   | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 101 insertions(+), 1 deletion(-)
+ 4 files changed, 100 insertions(+), 1 deletion(-)
  create mode 100644 rawread/Android.mk
  create mode 100644 rawread/rawread.c
 
 diff --git a/Android.mk b/Android.mk
-index 142eba7..cb9be83 100644
+index 1a72af0..2a56e78 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -337,7 +337,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+@@ -344,7 +344,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
      mkfs.fat \
      permissive.sh \
      simg2img_twrp \
@@ -27,19 +27,19 @@ index 142eba7..cb9be83 100644
  
  ifneq ($(TARGET_ARCH), arm64)
      ifneq ($(TARGET_ARCH), x86_64)
-@@ -591,6 +592,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
-     $(commands_recovery_local_path)/toybox/Android.mk \
-     $(commands_recovery_local_path)/simg2img/Android.mk \
+@@ -579,6 +580,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+     $(commands_recovery_local_path)/gui/Android.mk \
+     $(commands_recovery_local_path)/mmcutils/Android.mk \
      $(commands_recovery_local_path)/viewmem/Android.mk \
 +    $(commands_recovery_local_path)/rawread/Android.mk \
-     $(commands_recovery_local_path)/libpixelflinger/Android.mk
- 
- ifeq ($(TW_INCLUDE_CRYPTO), true)
+     $(commands_recovery_local_path)/bmlutils/Android.mk \
+     $(commands_recovery_local_path)/prebuilt/Android.mk \
+     $(commands_recovery_local_path)/mtdutils/Android.mk \
 diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
-index 6ba2a3a..e46d452 100644
+index 17af23c..5c80325 100644
 --- a/prebuilt/Android.mk
 +++ b/prebuilt/Android.mk
-@@ -38,6 +38,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
+@@ -40,6 +40,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
  RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/resize2fs
  RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/simg2img
  RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/viewmem
@@ -49,7 +49,7 @@ index 6ba2a3a..e46d452 100644
  endif
 diff --git a/rawread/Android.mk b/rawread/Android.mk
 new file mode 100644
-index 0000000..cb87d1e
+index 0000000..13dff2c
 --- /dev/null
 +++ b/rawread/Android.mk
 @@ -0,0 +1,11 @@
@@ -156,5 +156,5 @@ index 0000000..57eb18c
 +  return 0;
 +}
 -- 
-2.5.0
+2.7.4
 

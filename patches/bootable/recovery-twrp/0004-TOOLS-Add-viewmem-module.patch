@@ -1,4 +1,4 @@
-From f84dbced1b0270fe2bfeda78b14fa9e051ef6246 Mon Sep 17 00:00:00 2001
+From 2ae87f7293ebdcd7a6168a0b86d623d90aed7c1a Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Mon, 28 Mar 2016 03:54:16 +0300
 Subject: [PATCH 4/7] [TOOLS] Add viewmem module
@@ -14,10 +14,10 @@ Change-Id: I94ef01cfe60d7c6aace554128b576950909cd922
  create mode 100644 viewmem/viewmem.c
 
 diff --git a/Android.mk b/Android.mk
-index b559bb1..142eba7 100644
+index ef944e3..1a72af0 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -336,7 +336,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+@@ -343,7 +343,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
      fatlabel \
      mkfs.fat \
      permissive.sh \
@@ -27,19 +27,19 @@ index b559bb1..142eba7 100644
  
  ifneq ($(TARGET_ARCH), arm64)
      ifneq ($(TARGET_ARCH), x86_64)
-@@ -589,6 +590,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
-     $(commands_recovery_local_path)/etc/Android.mk \
-     $(commands_recovery_local_path)/toybox/Android.mk \
-     $(commands_recovery_local_path)/simg2img/Android.mk \
+@@ -577,6 +578,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+     $(commands_recovery_local_path)/htcdumlock/Android.mk \
+     $(commands_recovery_local_path)/gui/Android.mk \
+     $(commands_recovery_local_path)/mmcutils/Android.mk \
 +    $(commands_recovery_local_path)/viewmem/Android.mk \
-     $(commands_recovery_local_path)/libpixelflinger/Android.mk
- 
- ifeq ($(TW_INCLUDE_CRYPTO), true)
+     $(commands_recovery_local_path)/bmlutils/Android.mk \
+     $(commands_recovery_local_path)/prebuilt/Android.mk \
+     $(commands_recovery_local_path)/mtdutils/Android.mk \
 diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
-index 585810e..6ba2a3a 100644
+index 0eb8b2e..17af23c 100644
 --- a/prebuilt/Android.mk
 +++ b/prebuilt/Android.mk
-@@ -37,6 +37,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mke2fs
+@@ -39,6 +39,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mke2fs
  RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
  RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/resize2fs
  RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/simg2img
@@ -126,5 +126,5 @@ index 0000000..30612ea
 +    return 0;
 +}
 -- 
-2.5.0
+2.7.4
 
