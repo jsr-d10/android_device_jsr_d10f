@@ -23,7 +23,7 @@ index ef944e3..1a72af0 100644
      permissive.sh \
 -    simg2img_twrp
 +    simg2img_twrp \
-+    viewmem
++    viewmem_twrp
  
  ifneq ($(TARGET_ARCH), arm64)
      ifneq ($(TARGET_ARCH), x86_64)
