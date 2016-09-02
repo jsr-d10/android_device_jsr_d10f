@@ -1,0 +1,32 @@
+From 6f9b4b93afe051e52e7ff67d5e8e1253d9f1bf76 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 17 Jan 2016 13:04:34 +0300
+Subject: [PATCH 2/7] [WIPE] Don't leave /system/ mounted after wipe
+
+This confuses stock FW install scripts
+(leading to install error "some symlinks failed" and so)
+
+Change-Id: I133db9f3c89c3d862e108bea70e32c1ac60e72c6
+---
+ partition.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/partition.cpp b/partition.cpp
+index 12d4ad0..3800418 100644
+--- a/partition.cpp
++++ b/partition.cpp
+@@ -1758,6 +1758,11 @@ bool TWPartition::Wipe_EXT4() {
+ 		PartitionManager.Mount_By_Path(sedir.c_str(), true);
+ 		rmdir(sedir.c_str());
+ 		mkdir(sedir.c_str(), S_IRWXU | S_IRWXG | S_IWGRP | S_IXGRP);
++		if (Mount_Point == "/system") {
++			// umount /system after wipe (don't confuse stock FW installers)
++			LOGINFO("Wiped '%s' - umounting it!\n", Mount_Point.c_str());
++			PartitionManager.UnMount_By_Path(sedir.c_str(), true);
++		}
+ 		return true;
+ 	}
+ #else
+-- 
+2.5.0
+

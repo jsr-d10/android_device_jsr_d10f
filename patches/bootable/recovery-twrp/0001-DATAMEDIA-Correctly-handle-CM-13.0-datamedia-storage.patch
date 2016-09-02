@@ -1,0 +1,85 @@
+From 92df68fd72f21cb860d6f2ef88ae5971f7a1d527 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 17 Jan 2016 08:00:09 +0300
+Subject: [PATCH 1/7] [DATAMEDIA] Correctly handle CM-13.0 datamedia storage
+
+Honor persist.storages.configuration setting
+Set datamedia flag based on ro.usbmsc.present prop
+Set datamedia if /data/media/0/TWRP/.twrps config found
+(and so don't lock out backups in datamedia with wiped /data/)
+
+Change-Id: I055eda98fa61a7883cb8321bc9de50732cb2999f
+---
+ data.cpp | 16 +++++++++++++++-
+ data.hpp |  4 ++++
+ twrp.cpp | 12 ++++++++++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/data.cpp b/data.cpp
+index 1ea7b84..818eee8 100644
+--- a/data.cpp
++++ b/data.cpp
+@@ -586,7 +586,21 @@ void DataManager::SetDefaultValues()
+ 	mConst.SetValue(TW_HAS_DATA_MEDIA, "1");
+ 	datamedia = true;
+ #else
+-	mData.SetValue(TW_HAS_DATA_MEDIA, "0");
++	char usbmsc_present[PROPERTY_VALUE_MAX];
++	char storage_configuration[PROPERTY_VALUE_MAX];
++	property_get("ro.usbmsc.present", usbmsc_present, "true");
++	property_get("persist.storages.configuration", storage_configuration, STORAGES_CONFIGURATION_CLASSIC);
++	if (strncmp(usbmsc_present, "false", PROPERTY_VALUE_MAX) == 0 || strncmp(storage_configuration, STORAGES_CONFIGURATION_DATAMEDIA, PROPERTY_VALUE_MAX) == 0) {
++		printf("datamedia = true (forced by property ro.usbmsc.present=%s and persist.storages.configuration=%s\n", usbmsc_present, storage_configuration);
++		mConst.SetValue(TW_HAS_DATA_MEDIA, "1");
++		datamedia = true;
++	} else if (access("/data/media/0/TWRP/.twrps", F_OK) == 0) {
++		printf("RECOVERY_SDCARD_ON_DATA := true (forced by /data/media/0/TWRP/.twrps\n");
++		mConst.SetValue(TW_HAS_DATA_MEDIA, "1");
++		datamedia = true;
++	} else {
++		mConst.SetValue(TW_HAS_DATA_MEDIA, "0");
++	}
+ #endif
+ #ifdef TW_NO_BATT_PERCENT
+ 	printf("TW_NO_BATT_PERCENT := true\n");
+diff --git a/data.hpp b/data.hpp
+index 790efc9..0a0c574 100644
+--- a/data.hpp
++++ b/data.hpp
+@@ -23,6 +23,10 @@
+ #include <pthread.h>
+ #include "infomanager.hpp"
+ 
++#define STORAGES_CONFIGURATION_CLASSIC   "0"
++#define STORAGES_CONFIGURATION_INVERTED  "1"
++#define STORAGES_CONFIGURATION_DATAMEDIA "2"
++
+ using namespace std;
+ 
+ class DataManager
+diff --git a/twrp.cpp b/twrp.cpp
+index 96d24b8..fa004c5 100644
+--- a/twrp.cpp
++++ b/twrp.cpp
+@@ -98,6 +98,18 @@ int main(int argc, char **argv) {
+ 
+ #ifdef RECOVERY_SDCARD_ON_DATA
+ 	datamedia = true;
++#else
++	char usbmsc_present[PROPERTY_VALUE_MAX];
++	char storage_configuration[PROPERTY_VALUE_MAX];
++	property_get("ro.usbmsc.present", usbmsc_present, "true");
++	property_get("persist.storages.configuration", storage_configuration, STORAGES_CONFIGURATION_CLASSIC);
++	if (strncmp(usbmsc_present, "false", PROPERTY_VALUE_MAX) == 0 || strncmp(storage_configuration, STORAGES_CONFIGURATION_DATAMEDIA, PROPERTY_VALUE_MAX) == 0) {
++		printf("datamedia = true (forced by property ro.usbmsc.present=%s and persist.storages.configuration=%s\n", usbmsc_present, storage_configuration);
++		datamedia = true;
++	} else if (access("/data/media/0/TWRP/.twrps", F_OK) == 0) {
++		printf("datamedia = true (forced by /data/media/0/TWRP/.twrps\n");
++		datamedia = true;
++	}
+ #endif
+ 
+ 	char crash_prop_val[PROPERTY_VALUE_MAX];
+-- 
+2.5.0
+

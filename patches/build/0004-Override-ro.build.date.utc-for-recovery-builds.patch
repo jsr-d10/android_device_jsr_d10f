@@ -1,0 +1,27 @@
+From e603005e5fdf7371a2be07464ff6047050ad7e92 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Fri, 15 Jan 2016 01:33:14 +0300
+Subject: [PATCH 4/4] Override ro.build.date.utc for recovery builds.
+
+This is necessary to fix stock ROMs device check
+
+Change-Id: Id9b062c1fd052f405333b5bb3ebe5bbef5d48839
+---
+ core/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/Makefile b/core/Makefile
+index d5d47d6..cf7f1df 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -966,6 +966,7 @@ $(recovery_ramdisk): $(MKBOOTFS) $(MINIGZIP) $(RECOVERYIMAGE_EXTRA_DEPS) \
+ 	$(hide) cp $(RECOVERY_INSTALL_OTA_KEYS) $(TARGET_RECOVERY_ROOT_OUT)/res/keys
+ 	$(hide) cat $(INSTALLED_DEFAULT_PROP_TARGET) $(recovery_build_prop) \
+ 	        > $(TARGET_RECOVERY_ROOT_OUT)/default.prop
++	$(hide) sed -i 's/ro.build.date.utc=.*/ro.build.date.utc=0/g' $(TARGET_RECOVERY_ROOT_OUT)/default.prop
+ 	$(hide) $(MKBOOTFS) $(TARGET_RECOVERY_ROOT_OUT) | $(MINIGZIP) > $(recovery_ramdisk)
+ 
+ $(recovery_uncompressed_ramdisk): $(MINIGZIP) $(recovery_ramdisk)
+-- 
+2.7.4
+

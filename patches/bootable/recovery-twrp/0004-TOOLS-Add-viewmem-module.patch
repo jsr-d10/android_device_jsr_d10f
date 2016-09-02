@@ -1,0 +1,130 @@
+From 2ae87f7293ebdcd7a6168a0b86d623d90aed7c1a Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 28 Mar 2016 03:54:16 +0300
+Subject: [PATCH 4/7] [TOOLS] Add viewmem module
+
+Change-Id: I94ef01cfe60d7c6aace554128b576950909cd922
+---
+ Android.mk          |  4 +++-
+ prebuilt/Android.mk |  1 +
+ viewmem/Android.mk  | 13 +++++++++++++
+ viewmem/viewmem.c   | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 70 insertions(+), 1 deletion(-)
+ create mode 100644 viewmem/Android.mk
+ create mode 100644 viewmem/viewmem.c
+
+diff --git a/Android.mk b/Android.mk
+index ef944e3..1a72af0 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -343,7 +343,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+     fatlabel \
+     mkfs.fat \
+     permissive.sh \
+-    simg2img_twrp
++    simg2img_twrp \
++    viewmem_twrp
+ 
+ ifneq ($(TARGET_ARCH), arm64)
+     ifneq ($(TARGET_ARCH), x86_64)
+@@ -577,6 +578,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+     $(commands_recovery_local_path)/htcdumlock/Android.mk \
+     $(commands_recovery_local_path)/gui/Android.mk \
+     $(commands_recovery_local_path)/mmcutils/Android.mk \
++    $(commands_recovery_local_path)/viewmem/Android.mk \
+     $(commands_recovery_local_path)/bmlutils/Android.mk \
+     $(commands_recovery_local_path)/prebuilt/Android.mk \
+     $(commands_recovery_local_path)/mtdutils/Android.mk \
+diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
+index 0eb8b2e..17af23c 100644
+--- a/prebuilt/Android.mk
++++ b/prebuilt/Android.mk
+@@ -39,6 +39,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mke2fs
+ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
+ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/resize2fs
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/simg2img
++RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/viewmem
+ ifneq ($(TARGET_ARCH), x86_64)
+     RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/linker
+ endif
+diff --git a/viewmem/Android.mk b/viewmem/Android.mk
+new file mode 100644
+index 0000000..bde86bf
+--- /dev/null
++++ b/viewmem/Android.mk
+@@ -0,0 +1,13 @@
++LOCAL_PATH := $(call my-dir)
++
++include $(CLEAR_VARS)
++
++LOCAL_MODULE    := viewmem_twrp
++LOCAL_SRC_FILES := viewmem.c
++LOCAL_C_INCLUDES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
++LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
++LOCAL_MODULE_STEM := viewmem
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
++LOCAL_MODULE_TAGS := optional
++
++include $(BUILD_EXECUTABLE)
+diff --git a/viewmem/viewmem.c b/viewmem/viewmem.c
+new file mode 100644
+index 0000000..30612ea
+--- /dev/null
++++ b/viewmem/viewmem.c
+@@ -0,0 +1,53 @@
++#include "stdio.h"
++#include "fcntl.h"
++#include "errno.h"
++#include "sys/mman.h"
++
++#define INFO(fmt, ...) fprintf(stderr, "[INFO] " fmt, ##__VA_ARGS__)
++#define ERR(fmt, ...) fprintf(stderr, "[ERR]  " fmt, ##__VA_ARGS__)
++
++#define MAX(x, y) ((x) > (y) ? (x) : (y))
++
++int main(int argc, char* argv[]) {
++    int fd;
++    unsigned long addr = 0, size = sizeof(unsigned long), i, newaddr;
++    void *buf;
++
++    if (argc < 2 || sscanf(argv[1], "0x%lx", &addr) != 1) {
++        ERR("Wrong arguments!\n");
++        INFO("%s <0xABCDEF> [0x10] [/dev/kmem]\n", argv[0]);
++        return -1;
++    }
++
++    if (argc >= 3 && sscanf(argv[2], "0x%lx", &size) != 1) {
++        ERR("Wrong size format!\n");
++        return -1;
++    }
++
++    INFO("Reading %ld bytes at 0x%lx...\n", size, addr);
++
++    fd = open(argc >= 4 && argv[3] ? argv[3] : "/dev/mem", O_RDONLY);
++    if (!fd) {
++        ERR("Couldn't open /dev/mem! (%s)\n", strerror(errno));
++        return -1;
++    }
++
++    newaddr = addr & ~(getpagesize()-1);
++    buf = mmap(NULL, MAX(getpagesize(), size & ~(getpagesize()-1)), PROT_READ, MAP_SHARED, fd, newaddr);
++    if (buf == MAP_FAILED) {
++        ERR("Couldn't map 0x%lx (%d %s)!\n", addr, errno, strerror(errno));
++        close(fd);
++        return -1;
++    }
++
++    for (i = 0; i < size; i += sizeof(unsigned long)) {
++        char temp[4];
++        *(unsigned long*)temp = *(unsigned long*)(buf + (addr-newaddr) + i);
++        fwrite(temp, sizeof(temp), 1, stdout);
++    }
++
++    munmap(buf, size);
++    close(fd);
++
++    return 0;
++}
+-- 
+2.7.4
+
