@@ -1,0 +1,28 @@
+From 718e12babc96e1ab7527a4c8e6aca24a5ca33e42 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 17 Jan 2016 08:26:42 +0300
+Subject: [PATCH 5/5] Override ro.product.device=D10A_HighScreen for recovery
+ build
+
+This is necessary to fix stock ROMs device check
+
+Change-Id: I46bdf89f24868b05bef75044fa85a5c1ddf7e5fd
+---
+ core/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/Makefile b/core/Makefile
+index cf7f1df..b7f1596 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -967,6 +967,7 @@ $(recovery_ramdisk): $(MKBOOTFS) $(MINIGZIP) $(RECOVERYIMAGE_EXTRA_DEPS) \
+ 	$(hide) cat $(INSTALLED_DEFAULT_PROP_TARGET) $(recovery_build_prop) \
+ 	        > $(TARGET_RECOVERY_ROOT_OUT)/default.prop
+ 	$(hide) sed -i 's/ro.build.date.utc=.*/ro.build.date.utc=0/g' $(TARGET_RECOVERY_ROOT_OUT)/default.prop
++	$(hide) sed -i 's/ro.product.device=.*/ro.product.device=D10A_HighScreen/g' $(TARGET_RECOVERY_ROOT_OUT)/default.prop
+ 	$(hide) $(MKBOOTFS) $(TARGET_RECOVERY_ROOT_OUT) | $(MINIGZIP) > $(recovery_ramdisk)
+ 
+ $(recovery_uncompressed_ramdisk): $(MINIGZIP) $(recovery_ramdisk)
+-- 
+2.7.4
+

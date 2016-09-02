@@ -131,6 +131,26 @@ TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
+#BOARD_SUPPRESS_EMMC_WIPE := true
+
+# Uncomment next line to build TWRP
+# RECOVERY_VARIANT := twrp
+ifeq ($(RECOVERY_VARIANT), twrp)
+	TWHAVE_SELINUX := true
+	# RECOVERY_SDCARD_ON_DATA := true
+	TW_INCLUDE_JB_CRYPTO := true
+	TW_INCLUDE_L_CRYPTO := true
+	TARGET_RECOVERY_QCOM_RTC_FIX := true
+	TW_TARGET_USES_QCOM_BSP := true
+	TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+	TW_SECONDARY_BRIGHTNESS_PATH := /sys/class/leds/button-backlight/brightness
+	TW_THEME := portrait_hdpi
+	TW_NO_EXFAT_FUSE := true
+        TW_INCLUDE_NTFS_3G := true
+	PRODUCT_EXTRA_RECOVERY_KEYS += \
+		vendor/jsr/security/cm-12.1/releasekey \
+		vendor/jsr/security/cm-13.0/releasekey
+endif
 
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk

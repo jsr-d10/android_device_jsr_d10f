@@ -209,8 +209,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.vendor.extension_library=/vendor/lib/libqc-opt.so
 
 # Custom APK
-PRODUCT_PACKAGES += JSR_Settings    
-    
+PRODUCT_PACKAGES += JSR_Settings
+
 # OpenDelta
 PRODUCT_PACKAGES += OpenDelta
 
@@ -218,6 +218,7 @@ PRODUCT_PACKAGES += OpenDelta
 PRODUCT_PACKAGES += \
     fstab.d10f \
     fstab.template \
+    twrp.fstab \
     init.d10f.rc \
     init.d10f.usb.rc \
     ueventd.d10f.rc
@@ -236,6 +237,12 @@ PRODUCT_COPY_FILES += \
 # Torch
 PRODUCT_PACKAGES += \
     Torch
+
+# TWRP
+ifeq ($(RECOVERY_VARIANT), twrp)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/recovery/init.recovery.d10f.rc:root/init.recovery.d10f.rc
+endif
 
 # USB
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \

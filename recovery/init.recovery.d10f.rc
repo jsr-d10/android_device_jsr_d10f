@@ -1,0 +1,10 @@
+on charger
+    trigger late-init
+
+on fs
+    fstab /etc/recovery.fstab twrp generate
+    fstab /fstab.recovery.d10f recovery generate
+    mount_all /fstab.recovery.d10f
+    fstab /etc/recovery.fstab twrp update
+    fstab /fstab.recovery.d10f recovery update
+
