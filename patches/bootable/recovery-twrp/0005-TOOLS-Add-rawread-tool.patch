@@ -21,8 +21,8 @@ index 1a72af0..2a56e78 100644
      mkfs.fat \
      permissive.sh \
      simg2img_twrp \
--    viewmem
-+    viewmem \
+-    viewmem_twrp
++    viewmem_twrp \
 +    rawread
  
  ifneq ($(TARGET_ARCH), arm64)
@@ -130,7 +130,7 @@ index 0000000..57eb18c
 +  printf("read done: readed %d sectors in %f ms\n", sectors_count, elapsedTime);
 +
 +  current_pos=data;
-+  fd=open(OUTFILE, O_WRONLY|O_CREAT);
++  fd=open(OUTFILE, O_WRONLY|O_CREAT, S_IRUSR & S_IWUSR & S_IRGRP & S_IROTH);
 +  if (fd < 0) {
 +    printf("target file open failed: %s\n", strerror(errno));
 +    exit(1);
