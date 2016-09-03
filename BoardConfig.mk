@@ -137,6 +137,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 # Uncomment next line to build TWRP
 # RECOVERY_VARIANT := twrp
 ifeq ($(RECOVERY_VARIANT), twrp)
+	TW_NEW_ION_HEAP := true
 	TWHAVE_SELINUX := true
 	# RECOVERY_SDCARD_ON_DATA := true
 	TW_INCLUDE_JB_CRYPTO := true
