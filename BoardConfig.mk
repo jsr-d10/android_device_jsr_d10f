@@ -100,7 +100,7 @@ TARGET_LIBINIT_DEFINES_FILE := device/jsr/d10f/init/init_d10f.c
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/jsr/msm8228
-TARGET_KERNEL_CONFIG := aosp_yukon_eagle_defconfig
+TARGET_KERNEL_CONFIG := jsr_d10f_defconfig
 TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
 TARGET_KERNEL_ARCH := arm
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=d10f androidboot.selinux=permissive user_debug=31 msm_rtb.filter=0x37
