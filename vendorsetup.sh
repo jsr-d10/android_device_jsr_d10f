@@ -6,9 +6,11 @@ touch prebuilts/qemu-kernel/arm/LINUX_KERNEL_COPYING
 
 echo "Applying patches"
 patches_path="$build_root/device/jsr/d10f/patches/"
-pushd "$patches_path" > /dev/null
+cd $patches_path
 unset repos
 for patch in `find -type f -name '*.patch'|cut -d / -f 2-|sort`; do
+	cd $patches_path
+
 	# Strip patch title to get git commit title - git ignore [text] prefixes in beginning of patch title during git am
 	title=$(sed -rn "s/Subject: (\[[^]]+] *)*//p" "$patch")
 	absolute_patch_path="$patches_path/$patch"
@@ -22,7 +24,7 @@ for patch in `find -type f -name '*.patch'|cut -d / -f 2-|sort`; do
                 continue
         fi
 
-	pushd "$build_root/$repo_to_patch" > /dev/null
+	cd $build_root/$repo_to_patch
 	if (git log |fgrep -qm1 "$title" ); then
 		echo -n Yes
 	  commit_hash=$(git log --oneline |fgrep -m1 "$title"|cut -d ' ' -f 1)
@@ -53,9 +55,8 @@ for patch in `find -type f -name '*.patch'|cut -d / -f 2-|sort`; do
 			git am --abort
 		fi
 	fi
-	popd > /dev/null
 done
-popd > /dev/null
+cd $build_root
 echo "Applying patches: done"
 
 echo "Updating overlay"
