@@ -109,8 +109,8 @@ TARGET_KERNEL_CONFIG := jsr_d10f_defconfig
 TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-eabi-
 TARGET_KERNEL_ARCH := arm
 
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0
-BOARD_KERNEL_CMDLINE += androidboot.hardware=d10f androidboot.selinux=permissive
+# BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0
+BOARD_KERNEL_CMDLINE := androidboot.hardware=d10f androidboot.selinux=permissive
 BOARD_KERNEL_CMDLINE += msm_rtb.filter=0x37
 BOARD_KERNEL_CMDLINE += user_debug=31 debug ignore_loglevel
 BOARD_KERNEL_CMDLINE += llcondmp=0x7f200000,0x100000
