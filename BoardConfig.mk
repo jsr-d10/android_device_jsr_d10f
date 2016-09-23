@@ -115,6 +115,7 @@ BOARD_KERNEL_CMDLINE += msm_rtb.filter=0x37
 BOARD_KERNEL_CMDLINE += user_debug=31 debug ignore_loglevel
 BOARD_KERNEL_CMDLINE += llcondmp=0x7f200000,0x100000
 BOARD_KERNEL_CMDLINE += lpm_levels.sleep_disabled=1
+BOARD_KERNEL_CMDLINE += display_status=on
 
 BOARD_KERNEL_BASE        := 0x00000000
 BOARD_KERNEL_PAGESIZE    := 2048
