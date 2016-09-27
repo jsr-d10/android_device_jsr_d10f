@@ -5,29 +5,27 @@ Subject: [PATCH 4/7] [TOOLS] Add viewmem module
 
 Change-Id: I94ef01cfe60d7c6aace554128b576950909cd922
 ---
- Android.mk          |  4 +++-
+ Android.mk          |  2 ++
  prebuilt/Android.mk |  1 +
  viewmem/Android.mk  | 13 +++++++++++++
  viewmem/viewmem.c   | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 70 insertions(+), 1 deletion(-)
+ 4 files changed, 69 insertions(+)
  create mode 100644 viewmem/Android.mk
  create mode 100644 viewmem/viewmem.c
 
 diff --git a/Android.mk b/Android.mk
-index ef944e3..1a72af0 100644
+index 6f63d3c..3166986 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -343,7 +343,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
-     fatlabel \
-     mkfs.fat \
-     permissive.sh \
--    simg2img_twrp
-+    simg2img_twrp \
-+    viewmem_twrp
- 
- ifneq ($(TARGET_ARCH), arm64)
-     ifneq ($(TARGET_ARCH), x86_64)
-@@ -577,6 +578,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+@@ -346,6 +346,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+     dump_image \
+     erase_image \
+     flash_image \
++    viewmem_twrp \
+     mke2fs.conf \
+     pigz \
+     teamwin \
+@@ -627,6 +628,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
      $(commands_recovery_local_path)/htcdumlock/Android.mk \
      $(commands_recovery_local_path)/gui/Android.mk \
      $(commands_recovery_local_path)/mmcutils/Android.mk \
@@ -36,7 +34,7 @@ index ef944e3..1a72af0 100644
      $(commands_recovery_local_path)/prebuilt/Android.mk \
      $(commands_recovery_local_path)/mtdutils/Android.mk \
 diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
-index 0eb8b2e..17af23c 100644
+index fb8b012..3637d82 100644
 --- a/prebuilt/Android.mk
 +++ b/prebuilt/Android.mk
 @@ -39,6 +39,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mke2fs

@@ -5,29 +5,27 @@ Subject: [PATCH 5/7] [TOOLS] Add rawread tool
 
 Change-Id: Ie7edeb79a41eb8c0e4afbc172bf989cadf0f834f
 ---
- Android.mk          |  4 ++-
+ Android.mk          |  2 ++
  prebuilt/Android.mk |  1 +
  rawread/Android.mk  | 11 +++++++
  rawread/rawread.c   | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 100 insertions(+), 1 deletion(-)
+ 4 files changed, 99 insertions(+)
  create mode 100644 rawread/Android.mk
  create mode 100644 rawread/rawread.c
 
 diff --git a/Android.mk b/Android.mk
-index 1a72af0..2a56e78 100644
+index 3166986..a8af7d8 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -344,7 +344,8 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
-     mkfs.fat \
-     permissive.sh \
-     simg2img_twrp \
--    viewmem_twrp
-+    viewmem_twrp \
-+    rawread
- 
- ifneq ($(TARGET_ARCH), arm64)
-     ifneq ($(TARGET_ARCH), x86_64)
-@@ -579,6 +580,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+@@ -347,6 +347,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+     erase_image \
+     flash_image \
+     viewmem_twrp \
++    rawread \
+     mke2fs.conf \
+     pigz \
+     teamwin \
+@@ -629,6 +630,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
      $(commands_recovery_local_path)/gui/Android.mk \
      $(commands_recovery_local_path)/mmcutils/Android.mk \
      $(commands_recovery_local_path)/viewmem/Android.mk \
@@ -36,7 +34,7 @@ index 1a72af0..2a56e78 100644
      $(commands_recovery_local_path)/prebuilt/Android.mk \
      $(commands_recovery_local_path)/mtdutils/Android.mk \
 diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
-index 17af23c..5c80325 100644
+index 3637d82..8298d28 100644
 --- a/prebuilt/Android.mk
 +++ b/prebuilt/Android.mk
 @@ -40,6 +40,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
@@ -66,7 +64,7 @@ index 0000000..13dff2c
 +include $(BUILD_EXECUTABLE)
 diff --git a/rawread/rawread.c b/rawread/rawread.c
 new file mode 100644
-index 0000000..57eb18c
+index 0000000..6ab0f6c
 --- /dev/null
 +++ b/rawread/rawread.c
 @@ -0,0 +1,85 @@
