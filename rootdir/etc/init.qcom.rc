@@ -521,6 +521,16 @@ service ppd /system/bin/mm-pp-daemon
     socket pps stream 0660 system system
     group system graphics
 
+service qlogd /system/xbin/qlogd
+    class main
+    disabled
+
+on property:persist.sys.qlogd=1
+    start qlogd
+
+on property:persist.sys.qlogd=0
+    stop qlogd
+
 on property:init.svc.surfaceflinger=stopped
     stop ppd
 
