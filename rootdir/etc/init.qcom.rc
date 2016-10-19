@@ -76,7 +76,7 @@ on init
     
     #export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
     #export EMULATED_STORAGE_TARGET /storage/emulated
-    #export BOOTCLASSPATH ${BOOTCLASSPATH}:/system/framework/qcom.fmradio.jar
+    export BOOTCLASSPATH ${BOOTCLASSPATH}:/system/framework/qcom.fmradio.jar
 
 on fs
     mount_all ./fstab.d10f
