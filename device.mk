@@ -240,7 +240,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     hostapd_default.conf \
     p2p_supplicant_overlay.conf \
-    wpa_supplicant_overlay.conf
+    wpa_supplicant_overlay.conf \
+    pronto_wlan.ko
 
 PRODUCT_COPY_FILES += \
     vendor/qcom/opensource/wlan/prima/firmware_bin/WCNSS_qcom_wlan_nv.bin:system/etc/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin \
