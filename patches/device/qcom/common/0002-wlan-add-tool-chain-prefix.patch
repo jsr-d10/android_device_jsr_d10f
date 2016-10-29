@@ -1,0 +1,29 @@
+From 0b053e99ddde29be49b00be39919886cecefc861 Mon Sep 17 00:00:00 2001
+From: Samir Mehta <samirn@codeaurora.org>
+Date: Fri, 10 Jul 2015 16:08:02 +0530
+Subject: [PATCH 2/4] wlan: add tool chain prefix
+
+CROSS_COMPILE_PATH is defined in AndroidKernel.mk
+use the same to build the wlan kernel object.
+
+Change-Id: Ic3efafea928a86873cc2b8aa2b7e7246b8e13b2c
+---
+ dlkm/AndroidKernelModule.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlkm/AndroidKernelModule.mk b/dlkm/AndroidKernelModule.mk
+index cf6911d..9d7a94e 100644
+--- a/dlkm/AndroidKernelModule.mk
++++ b/dlkm/AndroidKernelModule.mk
+@@ -118,7 +118,7 @@ $(KBUILD_TARGET): kbuild_options := $(KBUILD_OPTIONS)
+ $(KBUILD_TARGET): $(TARGET_PREBUILT_INT_KERNEL)
+ 	@mkdir -p $(kbuild_out_dir)
+ 	$(hide) cp -f $(local_path)/Kbuild $(kbuild_out_dir)/Kbuild
+-	$(MAKE) -C kernel M=../$(local_path) O=../$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=arm-eabi- modules $(kbuild_options)
++	$(MAKE) -C kernel M=../$(local_path) O=../$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE_PATH)arm-eabi- modules $(kbuild_options)
+ 
+ # Once the KBUILD_OPTIONS variable has been used for the target
+ # that's specific to the LOCAL_PATH, clear it. If this isn't done,
+-- 
+2.9.3
+

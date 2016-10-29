@@ -1,0 +1,55 @@
+From ab7bb4768b8e5060bf01cde52727edf3df1fca38 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 29 Oct 2016 03:26:04 +0300
+Subject: [PATCH 4/4] wlan: Fix makefile for using device/vendor/chipset/
+ kernel directory
+
+CAF repositories have kernel sources directly in kernel/ directory, but this is not CM way
+
+Change-Id: I7f3bf70f72b8fc5526f9f774d1f36d1ef5c7da17
+---
+ dlkm/AndroidKernelModule.mk | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/dlkm/AndroidKernelModule.mk b/dlkm/AndroidKernelModule.mk
+index 8ae70c3..36b4ec0 100644
+--- a/dlkm/AndroidKernelModule.mk
++++ b/dlkm/AndroidKernelModule.mk
+@@ -43,7 +43,7 @@ KBUILD_TARGET := $(strip            \
+ # by the kernel build system. Ideally this would be the same
+ # directory as LOCAL_BUILT_MODULE, but because we're using
+ # relative paths for both O= and M=, we don't have much choice
+-KBUILD_OUT_DIR := $(TARGET_OUT_INTERMEDIATES)/$(LOCAL_PATH)
++KBUILD_OUT_DIR := $(TARGET_OUT_INTERMEDIATES)/../../$(LOCAL_PATH)
+ 
+ # Path to the intermediate location where the kernel build
+ # system creates the kernel module.
+@@ -54,6 +54,7 @@ KBUILD_MODULE := $(KBUILD_OUT_DIR)/$(LOCAL_MODULE)
+ $(KBUILD_MODULE): kbuild_out := $(KBUILD_OUT_DIR)/$(LOCAL_MODULE_KBUILD_NAME)
+ $(KBUILD_MODULE): $(KBUILD_TARGET)
+ ifneq "$(LOCAL_MODULE_KBUILD_NAME)" ""
++	echo kbuild_out:$(kbuild_out) KBUILD_OUT_DIR:$(KBUILD_OUT_DIR) LOCAL_MODULE_KBUILD_NAME:$(LOCAL_MODULE_KBUILD_NAME) TARGET_OUT_INTERMEDIATES:$(TARGET_OUT_INTERMEDIATES) LOCAL_PATH:$(LOCAL_PATH)
+ 	mv -f $(kbuild_out) $@
+ endif
+ 
+@@ -92,7 +93,7 @@ $(KBUILD_TARGET)_RULE := 1
+ # do not. Therefore, we need to explicitly include kernel/AndroidKernel.mk.
+ # It is safe to include it more than once because the entire file is
+ # guarded by "ifeq ($(TARGET_PREBUILT_KERNEL),) ... endif".
+-include kernel/AndroidKernel.mk
++include kernel/jsr/msm8226/AndroidKernel.mk
+ 
+ # Kernel modules have to be built after:
+ #  * the kernel config has been created
+@@ -118,7 +119,7 @@ $(KBUILD_TARGET): kbuild_options := $(KBUILD_OPTIONS)
+ $(KBUILD_TARGET): $(TARGET_PREBUILT_INT_KERNEL)
+ 	@mkdir -p $(kbuild_out_dir)
+ 	$(hide) cp -f $(local_path)/Kbuild $(kbuild_out_dir)/Kbuild
+-	$(MAKE) -C kernel M=../$(local_path) O=../$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=arm-linux-androideabi- modules $(kbuild_options)
++	$(MAKE) -C kernel/jsr/msm8226 M=../../../$(local_path) O=$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=arm-linux-androideabi- modules $(kbuild_options)
+ 
+ # Once the KBUILD_OPTIONS variable has been used for the target
+ # that's specific to the LOCAL_PATH, clear it. If this isn't done,
+-- 
+2.9.3
+

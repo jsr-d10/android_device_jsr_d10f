@@ -1,0 +1,30 @@
+From a4129ac20529b5a7cb39be0c6149b12fb5048ac6 Mon Sep 17 00:00:00 2001
+From: Srinivasarao P <spathi@codeaurora.org>
+Date: Thu, 27 Aug 2015 13:15:09 +0530
+Subject: [PATCH 3/4] Switch to arm-linux-androideabi toolchain.
+
+Remove gcc toolchain override and switch to arm-linux-androideabi
+toolchain.
+
+Change-Id: Ib8471b3e8caae8381125d8a5aaf7b8fcca69ad2f
+Signed-off-by: Srinivasarao P <spathi@codeaurora.org>
+---
+ dlkm/AndroidKernelModule.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlkm/AndroidKernelModule.mk b/dlkm/AndroidKernelModule.mk
+index 9d7a94e..8ae70c3 100644
+--- a/dlkm/AndroidKernelModule.mk
++++ b/dlkm/AndroidKernelModule.mk
+@@ -118,7 +118,7 @@ $(KBUILD_TARGET): kbuild_options := $(KBUILD_OPTIONS)
+ $(KBUILD_TARGET): $(TARGET_PREBUILT_INT_KERNEL)
+ 	@mkdir -p $(kbuild_out_dir)
+ 	$(hide) cp -f $(local_path)/Kbuild $(kbuild_out_dir)/Kbuild
+-	$(MAKE) -C kernel M=../$(local_path) O=../$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE_PATH)arm-eabi- modules $(kbuild_options)
++	$(MAKE) -C kernel M=../$(local_path) O=../$(KERNEL_OUT) ARCH=arm CROSS_COMPILE=arm-linux-androideabi- modules $(kbuild_options)
+ 
+ # Once the KBUILD_OPTIONS variable has been used for the target
+ # that's specific to the LOCAL_PATH, clear it. If this isn't done,
+-- 
+2.9.3
+
