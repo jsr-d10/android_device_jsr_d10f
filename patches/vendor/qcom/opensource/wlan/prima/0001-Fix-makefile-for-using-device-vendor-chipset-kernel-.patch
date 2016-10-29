@@ -1,0 +1,29 @@
+From 9bf31a4a791b238e0a058e17558916fed527159c Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 29 Oct 2016 04:07:37 +0300
+Subject: [PATCH] Fix makefile for using device/vendor/chipset/ kernel
+ directory
+
+CAF repositories have kernel sources directly in kernel/ directory, but this is not CM way
+
+Change-Id: Id71dfed18d1f5fc2575726bbfbce12a421293174
+---
+ Android.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Android.mk b/Android.mk
+index 115780b..33f4f30 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -83,7 +83,7 @@ endif
+ ###########################################################
+ 
+ # This is set once per LOCAL_PATH, not per (kernel) module
+-KBUILD_OPTIONS := WLAN_ROOT=../$(WLAN_BLD_DIR)/prima
++KBUILD_OPTIONS := WLAN_ROOT=../../../$(WLAN_BLD_DIR)/prima
+ # We are actually building wlan.ko here, as per the
+ # requirement we are specifying <chipset>_wlan.ko as LOCAL_MODULE.
+ # This means we need to rename the module to <chipset>_wlan.ko
+-- 
+2.9.3
+
