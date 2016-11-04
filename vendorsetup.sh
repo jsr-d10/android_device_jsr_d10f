@@ -71,8 +71,6 @@ echo "Updating overlay"
 sh device/jsr/d10f/update-overlay.sh
 rm -f out/target/product/d10f/system/build.prop
 
-export QCPATH=
-
 add_lunch_combo cm_d10f-eng
 add_lunch_combo cm_d10f-user
 add_lunch_combo cm_d10f-userdebug
