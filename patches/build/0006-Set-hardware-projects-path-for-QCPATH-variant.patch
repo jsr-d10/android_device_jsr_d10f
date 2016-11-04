@@ -1,0 +1,42 @@
+From 071c96542d21520a90fac3e151262511e37a6456 Mon Sep 17 00:00:00 2001
+From: remittor <remittor@gmail.com>
+Date: Fri, 4 Nov 2016 14:30:50 +0300
+Subject: [PATCH] core: Set hardware projects path for QCPATH variant
+
+---
+ core/qcom_target.mk | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/core/qcom_target.mk b/core/qcom_target.mk
+index 83c1490..70940a0 100644
+--- a/core/qcom_target.mk
++++ b/core/qcom_target.mk
+@@ -60,6 +60,7 @@ ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+         endif
+     endif
+ 
++ifeq ($(QCPATH),)
+ $(call project-set-path,qcom-audio,hardware/qcom/audio-caf/$(QCOM_HARDWARE_VARIANT))
+ $(call set-device-specific-path,CAMERA,camera,hardware/qcom/camera)
+ $(call project-set-path,qcom-display,hardware/qcom/display-caf/$(QCOM_HARDWARE_VARIANT))
+@@ -69,6 +70,17 @@ $(call set-device-specific-path,SENSORS,sensors,hardware/qcom/sensors)
+ $(call ril-set-path-variant,ril)
+ $(call set-device-specific-path,LOC_API,loc-api,vendor/qcom/opensource/location)
+ else
++$(call project-set-path,qcom-audio,hardware/qcom/audio)
++$(call project-set-path,qcom-camera,hardware/qcom/camera)
++$(call project-set-path,qcom-display,hardware/qcom/display)
++$(call project-set-path,qcom-gps,hardware/qcom/gps)
++$(call project-set-path,qcom-media,hardware/qcom/media)
++$(call project-set-path,qcom-sensors,hardware/qcom/sensors)
++$(call ril-set-path-variant,ril)
++$(call project-set-path,loc-api,vendor/qcom/opensource/location)
++endif
++
++else
+ $(call project-set-path,qcom-audio,hardware/qcom/audio/default)
+ $(call project-set-path,qcom-camera,hardware/qcom/camera)
+ $(call project-set-path,qcom-display,hardware/qcom/display/$(TARGET_BOARD_PLATFORM))
+-- 
+1.9.5.msysgit.0
+
