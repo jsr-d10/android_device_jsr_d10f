@@ -18,6 +18,7 @@
 #define PERSISTENT_PROPERTY_DIR  "/data/property"
 #define PERSISTENT_PROPERTY_PLANNED_SWAP    "persist.storages.planned_swap"
 #define PERSISTENT_PROPERTY_SWAPPED         "persist.storages.swapped"
+#define RO_PROPERTY_SWAP_SDCC               "ro.boot.swap_sdcc"
 
 static const char * prop_forced_list[] = {
 	PERSISTENT_PROPERTY_PLANNED_SWAP,
@@ -361,23 +362,28 @@ void init_msm_properties(unsigned long msm_id, unsigned long msm_ver, char * boa
 	init_prop_forced_list();
 
 	mount("rootfs", "/", "rootfs", MS_REMOUNT|0, NULL);
+	ERROR("%s: rootfs remouted\n", __func__);
 
 	rc = property_get("ro.boot.llcon", value);
 	if (rc > 0) {
-		if (value[0] != '0')
+		if (value[0] != '0') {
 			property_set("debug.sf.nobootanimation", "1");
+			ERROR("%s: set 1 to debug.sf.nobootanimation\n", __func__);
+		}
 	}
 
 	rc = property_get(PERSISTENT_PROPERTY_PLANNED_SWAP, value);
 	if (rc && atoi(value))
 		stor_swapped = 1;
+	ERROR("%s: %s = %d\n", __func__, PERSISTENT_PROPERTY_PLANNED_SWAP, stor_swapped);
 
-	rc = property_get("ro.boot.swap_sdcc", value);
+	rc = property_get(RO_PROPERTY_SWAP_SDCC, value);
 	if (rc) {
 		swap_sdcc = atoi(value);
 		if (swap_sdcc < 0 || swap_sdcc > 2)
 			swap_sdcc = 0;
 	}
+	ERROR("%s: %s = %d\n", __func__, RO_PROPERTY_SWAP_SDCC, swap_sdcc);
 
 	if (swap_sdcc > 0) {
 		storage_list[STOR_PRIMARY].emmc = 0;
@@ -433,4 +439,5 @@ void init_msm_properties(unsigned long msm_id, unsigned long msm_ver, char * boa
 	create_storage_list();
 
 	mount("rootfs", "/", "rootfs", MS_REMOUNT|MS_RDONLY, NULL);
+	ERROR("%s: rootfs remouted (RO)\n", __func__);
 }
