@@ -66,8 +66,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     camera2.portability.force_api=1
 
-PRODUCT_PACKAGES += \
-    libxml2
+PRODUCT_PACKAGES += libxml2
+PRODUCT_PACKAGES += camera.msm8226
 
 # Charger
 PRODUCT_PACKAGES += \
