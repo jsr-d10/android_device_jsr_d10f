@@ -107,15 +107,12 @@ PRODUCT_PACKAGES += \
     qcom.fmradio
 
 # GPS
-PRODUCT_PACKAGES += \
-    gps.msm8226
-
-PRODUCT_PACKAGES += \
-    gps.conf \
-    sap.conf
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.gps.agps_provider=1
+PRODUCT_PACKAGES += gps.msm8226
+PRODUCT_PACKAGES += libgps.utils
+PRODUCT_PACKAGES += libloc_eng
+PRODUCT_PACKAGES += libloc_core
+PRODUCT_PACKAGES += libloc_api_v02
+PRODUCT_PACKAGES += gps.conf
 
 # IO Scheduler
 PRODUCT_PROPERTY_OVERRIDES += \

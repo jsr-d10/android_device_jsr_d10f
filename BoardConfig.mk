@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+# inherit from the proprietary version
+-include vendor/jsr/d10f/BoardConfigVendor.mk
+
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "qualcomm-smd"
 
@@ -191,6 +194,3 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 TARGET_USES_QCOM_WCNSS_QMI := true
 WIFI_DRIVER_MODULE_NAME := "wlan"
 WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/wlan.ko"
-
-# inherit from the proprietary version
--include vendor/jsr/d10f/BoardConfigVendor.mk
