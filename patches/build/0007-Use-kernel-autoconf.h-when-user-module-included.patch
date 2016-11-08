@@ -1,0 +1,53 @@
+From f6e0240b8e1be42aca63ba293019ade2d9f3fed1 Mon Sep 17 00:00:00 2001
+From: remittor <remittor@gmail.com>
+Date: Tue, 8 Nov 2016 18:54:45 +0300
+Subject: [PATCH] core: Use kernel autoconf.h when user module included
+ KERNEL_OBJ
+
+---
+ core/binary.mk | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/core/binary.mk b/core/binary.mk
+index 170e20c..188188c 100644
+--- a/core/binary.mk
++++ b/core/binary.mk
+@@ -113,6 +113,35 @@ my_cxx := $(LOCAL_CXX)
+ my_c_includes := $(LOCAL_C_INCLUDES)
+ my_generated_sources := $(LOCAL_GENERATED_SOURCES)
+ 
++
++ifneq ($(strip $(TARGET_NO_KERNEL)),true)
++  my_kconfig := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/include/generated/autoconf.h
++
++  ifeq ($(findstring /KERNEL_OBJ/usr/include/generated,$(my_cflags)),)
++    use_kernel_hdr :=
++    ifneq ($(findstring /KERNEL_OBJ/usr,$(my_c_includes)),)
++      use_kernel_hdr := true
++    else
++      ifneq ($(findstring /KERNEL_OBJ/usr/include,$(my_cflags)),)
++        use_kernel_hdr := true
++      endif
++    endif
++    ifeq ($(use_kernel_hdr),true)
++      my_cflags += -include $(my_kconfig)
++      my_cppflags += -include $(my_kconfig)
++    endif
++  endif
++
++  ifneq ($(findstring /KERNEL_OBJ/usr,$(my_c_includes)),)
++    ifeq ($(strip $(TARGET_KERNEL_ARCH)),arm64)
++      LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/arch/arm64/boot/Image.gz
++    else
++      LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/arch/arm/boot/zImage
++    endif
++  endif
++endif
++
++
+ # MinGW spits out warnings about -fPIC even for -fpie?!) being ignored because
+ # all code is position independent, and then those warnings get promoted to
+ # errors.
+-- 
+1.9.5.msysgit.0
+
