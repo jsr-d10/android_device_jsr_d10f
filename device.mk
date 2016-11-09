@@ -201,9 +201,8 @@ PRODUCT_PACKAGES += \
     power.msm8226
 
 # Qualcomm
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.timed.enable=true \
-    ro.vendor.extension_library=/vendor/lib/libqc-opt.so
+PRODUCT_PROPERTY_OVERRIDES += persist.timed.enable=true
+PRODUCT_PROPERTY_OVERRIDES += ro.vendor.extension_library=libqti-perfd-client.so
 
 # Custom APK
 PRODUCT_PACKAGES += JSR_Settings
