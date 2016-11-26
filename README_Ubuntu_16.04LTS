@@ -1,0 +1,54 @@
+Device tree for JSR D10F (msm8228)
+
+--------------------------
+ROM for JSR D10F (HighScreen Boost 2 SE)
+
+Kernel based on CAF AU_LINUX_ANDROID_KK_3.5.04.04.04.003 (2015-03-06)
+
+--------------------------
+Install Ubuntu 16.04 x64
+
+mkdir ~/bin/
+wget http://commondatastorage.googleapis.com/git-repo-downloads/repo -O ~/bin/repo
+chmod 755 ~/bin/repo
+
+# Install and select OpenJDK 7 as default Java VM
+sudo apt-add-repository ppa:openjdk-r/ppa
+sudo apt update
+sudo apt install -y openjdk-7-jdk
+sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+sudo update-alternatives --set javac /usr/lib/jvm/java-7-openjdk-amd64/bin/javac
+sudo update-alternatives --set javap /usr/lib/jvm/java-7-openjdk-amd64/bin/javap
+sudo update-alternatives --set javah /usr/lib/jvm/java-7-openjdk-amd64/bin/javah
+sudo update-alternatives --set javadoc /usr/lib/jvm/java-7-openjdk-amd64/bin/javadoc
+
+# Install and configure GIT
+sudo apt install -y git 
+git config --global user.email "user@gmail.com"
+git config --global user.name "github_account"
+
+# Install some necessary for building packages
+sudo apt install -y xmlstarlet curl schedtool m4 libc6-i386 lib32z1 lib32stdc++6 flex gperf bison g++
+
+# Create work tree and fetch sources
+# repo will download ~23GiB of data.
+# The work tree will consume ~31GiB of disk space (on EXT4 FS) after sync, and ~60GiB after building, but slightly more during build process, so prepare 64GiB of disk space for it.
+mkdir ~/cm-11.0/
+cd ~/cm-11.0/
+repo init -u git://github.com/CyanogenMod/android.git -b cm-11.0
+git clone https://github.com/jsr-d10/local_manifest.git .repo/local_manifests -b cm-11.0
+rm .repo/local_manifests/d10f-qc.xml
+repo sync
+
+# Download prebuilt Terminal Emulator package
+mkdir -p ~/cm-11.0/vendor/cm/proprietary/
+wget https://jackpal.github.com/Android-Terminal-Emulator/downloads/Term.apk -O ~/cm-11.0/vendor/cm/proprietary/Term.apk 
+unzip -o ~/cm-11.0/vendor/cm/proprietary/Term.apk lib/* -d ~/cm-11.0/vendor/cm/proprietary/
+
+# Create empty marker file
+mkdir -p prebuilts/qemu-kernel/arm/
+touch prebuilts/qemu-kernel/arm/LINUX_KERNEL_COPYING
+
+# Actually build CM-11.0
+. build/envsetup.sh
+brunch cm_d10f-userdebug
