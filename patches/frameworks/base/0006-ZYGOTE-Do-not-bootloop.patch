@@ -1,0 +1,35 @@
+From 22f7a477a8668ad7f16062d821b61c2b943a96a2 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 29 Nov 2016 10:00:18 +0300
+Subject: [PATCH 6/6] [ZYGOTE] Do not bootloop
+
+---
+ core/jni/fd_utils-inl.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/core/jni/fd_utils-inl.h b/core/jni/fd_utils-inl.h
+index f245a7f..42c5ee4 100644
+--- a/core/jni/fd_utils-inl.h
++++ b/core/jni/fd_utils-inl.h
+@@ -61,6 +61,7 @@ static const char* kPathWhitelist[] = {
+   "@netlink@",
+   "/system/framework/org.cyanogenmod.platform-res.apk",
+   "/proc/ged",
++  "", /* S-trace: Allow local unnamed sockets, do not bootloop */
+ #ifdef PATH_WHITELIST_EXTRA_H
+ PATH_WHITELIST_EXTRA_H
+ #endif
+@@ -320,8 +321,8 @@ class FileDescriptorInfo {
+     size_t path_len = addr_len - offsetof(struct sockaddr_un, sun_path);
+     // This is an unnamed local socket, we do not accept it.
+     if (path_len == 0) {
+-      ALOGE("Unsupported AF_UNIX socket (fd=%d) with empty path.", fd);
+-      return false;
++      ALOGE("Unsupported AF_UNIX socket (fd=%d) with empty path, but ignoring it (S-trace: do not bootloop).", fd);
++      return true;
+     }
+ 
+     // This is a local socket with an abstract address, we do not accept it.
+-- 
+2.9.3
+
