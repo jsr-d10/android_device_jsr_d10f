@@ -99,7 +99,7 @@ TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/jsr/msm8226
 TARGET_KERNEL_CONFIG := jsr_d10f_defconfig
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=d10f zcache.enabled=1
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=d10f zcache.enabled=1 androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
