@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-LOCAL_PATH := device/xiaomi/armani
+LOCAL_PATH := device/jsr/d10f
 
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "qualcomm-smd"
@@ -89,14 +89,14 @@ BOARD_HARDWARE_CLASS := $(LOCAL_PATH)/cmhw/
 TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 
 # Init
-TARGET_INIT_VENDOR_LIB := libinit_armani
-TARGET_RECOVERY_DEVICE_MODULES := libinit_armani
+TARGET_INIT_VENDOR_LIB := libinit_d10f
+TARGET_RECOVERY_DEVICE_MODULES := libinit_d10f
 TARGET_UNIFIED_DEVICE := true
 
 # Kernel
-TARGET_KERNEL_SOURCE := kernel/xiaomi/armani
-TARGET_KERNEL_CONFIG := cyanogenmod_armani_defconfig
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=armani zcache.enabled=1
+TARGET_KERNEL_SOURCE := kernel/jsr/d10f
+TARGET_KERNEL_CONFIG := cyanogenmod_d10f_defconfig
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=d10f zcache.enabled=1
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
@@ -123,7 +123,7 @@ BOARD_USES_QCOM_HARDWARE := true
 TARGET_RIL_VARIANT := caf
 
 # Recovery
-TARGET_RECOVERY_FSTAB := $(LOCAL_PATH)/rootdir/fstab.armani
+TARGET_RECOVERY_FSTAB := $(LOCAL_PATH)/rootdir/fstab.d10f
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
@@ -154,4 +154,4 @@ TARGET_PROVIDES_WCNSS_QMI := true
 TARGET_USES_QCOM_WCNSS_QMI := true
 
 # inherit from the proprietary version
--include vendor/xiaomi/armani/BoardConfigVendor.mk
+-include vendor/jsr/d10f/BoardConfigVendor.mk

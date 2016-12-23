@@ -4,7 +4,7 @@
     "target_path": "device/qcom/common"
   },
   {
-    "repository": "android_kernel_xiaomi_armani",
-    "target_path": "kernel/xiaomi/armani"
+    "repository": "android_kernel_jsr_d10f",
+    "target_path": "kernel/jsr/d10f"
   }
 ]

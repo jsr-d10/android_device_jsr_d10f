@@ -16,8 +16,8 @@
 
 set -e
 
-VENDOR=xiaomi
-DEVICE=armani
+VENDOR=jsr
+DEVICE=d10f
 
 # Load extractutils and do some sanity checks
 MY_DIR="${BASH_SOURCE%/*}"

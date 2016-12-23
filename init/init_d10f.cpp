@@ -48,8 +48,8 @@ void vendor_load_properties()
         property_set("ro.product.model", "HM 1SC");
     }
 
-    property_set("ro.product.device", "armani");
-    property_set("ro.build.product", "armani");
-    property_set("ro.build.description", "armani-user 4.4.4 KTU84P V8.0.1.0.KHCMIDG release-keys");
-    property_set("ro.build.fingerprint", "Xiaomi/armani/armani:4.4.4/KTU84P/V8.0.1.0.KHCMIDG:user/release-keys");
+    property_set("ro.product.device", "d10f");
+    property_set("ro.build.product", "d10f");
+    property_set("ro.build.description", "d10f-user 4.4.4 KTU84P V8.0.1.0.KHCMIDG release-keys");
+    property_set("ro.build.fingerprint", "Xiaomi/d10f/d10f:4.4.4/KTU84P/V8.0.1.0.KHCMIDG:user/release-keys");
 }

@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 
-ifeq ($(TARGET_DEVICE),armani)
+ifeq ($(TARGET_DEVICE),d10f)
 
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := wcnss_xiaomi_client.c
+LOCAL_SRC_FILES := wcnss_jsr_client.c
 
 LOCAL_C_INCLUDES += hardware/qcom/wlan/wcnss_service
 LOCAL_CFLAGS += -Wall

@@ -57,10 +57,10 @@ PRODUCT_COPY_FILES += \
 
 # Bluetooth
 PRODUCT_PACKAGES += \
-    bdaddr_xiaomi
+    bdaddr_jsr
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/init.armani.bt.sh:system/bin/init.armani.bt.sh
+    $(LOCAL_PATH)/configs/init.d10f.bt.sh:system/bin/init.d10f.bt.sh
 
 # CABL
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -170,10 +170,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Rootdir
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/fstab.armani:root/fstab.armani \
-    $(LOCAL_PATH)/rootdir/init.armani.rc:root/init.armani.rc \
-    $(LOCAL_PATH)/rootdir/init.armani.usb.rc:root/init.armani.usb.rc \
-    $(LOCAL_PATH)/rootdir/ueventd.armani.rc:root/ueventd.armani.rc
+    $(LOCAL_PATH)/rootdir/fstab.d10f:root/fstab.d10f \
+    $(LOCAL_PATH)/rootdir/init.d10f.rc:root/init.d10f.rc \
+    $(LOCAL_PATH)/rootdir/init.d10f.usb.rc:root/init.d10f.usb.rc \
+    $(LOCAL_PATH)/rootdir/ueventd.d10f.rc:root/ueventd.d10f.rc
 
 # Sensors
 PRODUCT_COPY_FILES += \

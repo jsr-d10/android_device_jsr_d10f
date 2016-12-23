@@ -25,7 +25,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import init.armani.usb.rc
+import init.d10f.usb.rc
 
 on early-init
     write /sys/block/mmcblk0/queue/scheduler noop
@@ -43,8 +43,8 @@ on init
     write /proc/sys/vm/page-cluster 0
 
 on fs
-    mount_all fstab.armani
-    swapon_all fstab.armani
+    mount_all fstab.d10f
+    swapon_all fstab.d10f
 
     restorecon_recursive /persist
 
@@ -208,7 +208,7 @@ service rfs_access /system/bin/rfs_access
     user system
     group system net_raw
 
-service bdaddr /system/bin/bdaddr_xiaomi
+service bdaddr /system/bin/bdaddr_jsr
     class core
     user root
     group system
@@ -218,7 +218,7 @@ on property:init.svc.bdaddr=stopped
     chmod 644 /data/misc/bluetooth/bdaddr
     chown bluetooth bluetooth /data/misc/bluetooth/bdaddr
 
-service hciattach /system/bin/init.armani.bt.sh
+service hciattach /system/bin/init.d10f.bt.sh
     class late_start
     user bluetooth
     group qcom_oncrpc bluetooth net_bt_admin system
