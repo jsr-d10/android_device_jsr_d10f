@@ -1,0 +1,65 @@
+From 6866a8b1b8180b87b95c65d54c8918d01ab8fe53 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Fri, 4 Dec 2015 22:02:48 +0300
+Subject: [PATCH 1/2] [STORAGES] Skip mDisks.push_back for mmcblk*rpmb
+
+This fixes issue with this partition that have been added as
+second primary storage (unmountable) and thus confusing system
+(nothing becomes real primary storage):
+
+root@d10f:/ # dumpsys mount
+Disks:
+  DiskInfo{disk:179,32}:
+    flags=ADOPTABLE|SD size=0 label=null
+    sysPath=null
+  DiskInfo{disk:179,64}:
+    flags=ADOPTABLE|SD size=7948206080 label=SanDisk
+    sysPath=/sys//devices/msm_sdcc.2/mmc_host/mmc1/mmc1:d00d/block/mmcblk1
+  DiskInfo{disk:179,0}:
+    flags=ADOPTABLE|SD size=0 label=null
+    sysPath=null
+
+Volumes:
+  VolumeInfo{public:179,16}:
+    type=PUBLIC diskId=disk:179,0 partGuid=null mountFlags=VISIBLE mountUserId=0 state=MOUNTED
+    fsType=vfat fsUuid=DEAD-BEEF fsLabel=sdcard0
+    path=/storage/519B-D7A6 internalPath=/mnt/media_rw/DEAD-BEEF
+  VolumeInfo{public:179,48}:
+    type=PUBLIC diskId=disk:179,32 partGuid=null mountFlags=VISIBLE mountUserId=0 state=UNMOUNTABLE
+    fsType=auto fsUuid=null fsLabel=sdcard0
+    path=null internalPath=null
+  VolumeInfo{public:179,65}:
+    type=PUBLIC diskId=disk:179,64 partGuid=null mountFlags=VISIBLE mountUserId=0 state=MOUNTED
+    fsType=vfat fsUuid=BAAD-FOOD fsLabel=sdcard1
+    path=/storage/F128-19E4 internalPath=/mnt/media_rw/BAAD-FOOD
+  VolumeInfo{emulated}:
+    type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1 state=UNMOUNTED
+    fsType=null fsUuid=null fsLabel=emulated
+    path=null internalPath=null
+
+Change-Id: I5b0a5044cfc7adea6741e3c8ec2ae4dd3312c508
+---
+ VolumeManager.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/VolumeManager.cpp b/VolumeManager.cpp
+index 2f623ef..45fafd3 100644
+--- a/VolumeManager.cpp
++++ b/VolumeManager.cpp
+@@ -313,7 +313,12 @@ void VolumeManager::handleBlockEvent(NetlinkEvent *evt) {
+                                 source->getPartNum(),
+                                 source->getFsType(), source->getMntOpts());
+                 disk->create();
+-                mDisks.push_back(std::shared_ptr<android::vold::Disk>(disk));
++                if(! strcmp(evt->findParam("DEVNAME"), "mmcblk0rpmb")) // Fix for rpmb disk storage
++                    LOG(DEBUG) << "Skipping mDisks.push_back for mmcblk0rpmb " << major << ":" << minor;
++                else if(! strcmp(evt->findParam("DEVNAME"), "mmcblk1rpmb")) // Fix for rpmb disk storage if booted from SD
++                    LOG(DEBUG) << "Skipping mDisks.push_back for mmcblk1rpmb " << major << ":" << minor;
++                else
++                    mDisks.push_back(std::shared_ptr<android::vold::Disk>(disk));
+                 break;
+             }
+         }
+-- 
+1.9.1
+
