@@ -93,6 +93,10 @@ PRODUCT_PACKAGES += \
     ethertypes \
     libebtc
 
+# fstab
+PRODUCT_PACKAGES += \
+    fstab
+
 # FM
 PRODUCT_PACKAGES += \
     FMRadio \

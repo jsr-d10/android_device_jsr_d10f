@@ -43,7 +43,9 @@ on init
     write /proc/sys/vm/page-cluster 0
 
 on fs
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular generate
     mount_all fstab.d10f
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular update
     swapon_all fstab.d10f
 
     restorecon_recursive /persist
