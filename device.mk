@@ -175,7 +175,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Rootdir
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/fstab.d10f:root/fstab.d10f \
     $(LOCAL_PATH)/rootdir/init.d10f.rc:root/init.d10f.rc \
     $(LOCAL_PATH)/rootdir/init.d10f.usb.rc:root/init.d10f.usb.rc \
     $(LOCAL_PATH)/rootdir/ueventd.d10f.rc:root/ueventd.d10f.rc
