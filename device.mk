@@ -147,7 +147,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Custom Settings page
 PRODUCT_PACKAGES += \
     JSR_Settings
-    
+
+# KeyHandler
+PRODUCT_PACKAGES += \
+    com.cyanogenmod.keyhandler
+
 # OpenDelta
 PRODUCT_PACKAGES += \
     OpenDelta
