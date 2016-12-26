@@ -1,0 +1,57 @@
+From 31faaa0709c74ed7ac21dcf43ee4ced42854052f Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 24 Jan 2016 14:25:26 +0300
+Subject: [PATCH] [LEGACY] Fix build failure in CM-13.0 tree
+
+Change-Id: I84caf6507c672cb6dd63cde321ca0f4187402fb2
+ERROR: /home/android/cm13.0/packages/apps/Calculator/src/com/android/calculator2/view/PreferencesFragment.java:164: Cannot reduce the visibility of the inherited method from Fragment
+ERROR: /home/android/cm13.0/packages/apps/Calculator/src/com/android/calculator2/view/PageOrderFragment.java:81: Cannot reduce the visibility of the inherited method from Fragment
+ERROR: /home/android/cm13.0/packages/apps/Calculator/src/com/android/calculator2/Fragment.java:64: Cannot reduce the visibility of the inherited method from Fragment
+---
+ src/com/android/calculator2/Fragment.java                 | 2 +-
+ src/com/android/calculator2/view/PageOrderFragment.java   | 2 +-
+ src/com/android/calculator2/view/PreferencesFragment.java | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/com/android/calculator2/Fragment.java b/src/com/android/calculator2/Fragment.java
+index 9728995..ad85399 100644
+--- a/src/com/android/calculator2/Fragment.java
++++ b/src/com/android/calculator2/Fragment.java
+@@ -61,7 +61,7 @@ public abstract class Fragment extends android.support.v4.app.Fragment {
+      * Returns a base context. This context will die when the
+      * activity dies, so don't hold on to it.
+      */
+-    protected Context getContext() {
++    public Context getContext() {
+         return getActivity();
+     }
+ 
+diff --git a/src/com/android/calculator2/view/PageOrderFragment.java b/src/com/android/calculator2/view/PageOrderFragment.java
+index 6e6130b..93c55bd 100644
+--- a/src/com/android/calculator2/view/PageOrderFragment.java
++++ b/src/com/android/calculator2/view/PageOrderFragment.java
+@@ -78,7 +78,7 @@ public class PageOrderFragment extends ListFragment {
+         populateList();
+     }
+ 
+-    private Context getContext() {
++    public Context getContext() {
+         return getActivity();
+     }
+ 
+diff --git a/src/com/android/calculator2/view/PreferencesFragment.java b/src/com/android/calculator2/view/PreferencesFragment.java
+index dd226ae..08ea1bd 100644
+--- a/src/com/android/calculator2/view/PreferencesFragment.java
++++ b/src/com/android/calculator2/view/PreferencesFragment.java
+@@ -161,7 +161,7 @@ public class PreferencesFragment extends PreferenceFragment {
+         return (ListView) getView().findViewById(android.R.id.list);
+     }
+ 
+-    protected Context getContext() {
++    public Context getContext() {
+         return getActivity();
+     }
+ 
+-- 
+2.5.0
+

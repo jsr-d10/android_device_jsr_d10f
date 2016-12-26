@@ -93,6 +93,10 @@ PRODUCT_PACKAGES += \
     ethertypes \
     libebtc
 
+# CM-11.0 Calculator
+PRODUCT_PACKAGES += \
+    Calculator
+
 # fstab
 PRODUCT_PACKAGES += \
     fstab
