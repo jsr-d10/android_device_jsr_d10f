@@ -1,0 +1,29 @@
+From fe3d0ca6aa9edb7662ad4316b04e1cc6eb4530d8 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 28 Nov 2015 21:19:40 +0300
+Subject: [PATCH 5/5] [STORAGES] Reduce DEFAULT_THRESHOLD_MAX_BYTES
+ (500MB=>10MB)
+
+to get rid of nasty low storage warning when there is still really much free space in /data/
+
+Change-Id: Ib8db62d3feaf956088b4b64e220ef61ea995e52e
+---
+ core/java/android/os/storage/StorageManager.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/java/android/os/storage/StorageManager.java b/core/java/android/os/storage/StorageManager.java
+index 1d92453..783f3bc 100644
+--- a/core/java/android/os/storage/StorageManager.java
++++ b/core/java/android/os/storage/StorageManager.java
+@@ -918,7 +918,7 @@ public class StorageManager {
+ 
+     /** {@hide} */
+     private static final int DEFAULT_THRESHOLD_PERCENTAGE = 10;
+-    private static final long DEFAULT_THRESHOLD_MAX_BYTES = 500 * MB_IN_BYTES;
++    private static final long DEFAULT_THRESHOLD_MAX_BYTES = 10 * MB_IN_BYTES;
+     private static final long DEFAULT_FULL_THRESHOLD_BYTES = MB_IN_BYTES;
+ 
+     /**
+-- 
+2.5.0
+
