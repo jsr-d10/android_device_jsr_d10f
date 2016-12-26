@@ -196,6 +196,32 @@ on post-fs-data
     chown system system /sys/class/timed_output/vibrator/amp
     chmod 0664 /sys/class/timed_output/vibrator/amp
 
+    # Color calibration control
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_enable
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_min
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_invert
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_hue
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_sat
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_val
+    chown root system /sys/devices/platform/kcal_ctrl.0/kcal_cont
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_enable
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_min
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_invert
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_hue
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_sat
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_val
+    chmod 0664 /sys/devices/platform/kcal_ctrl.0/kcal_cont
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_enable
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_min
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_invert
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_hue
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_sat
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_val
+    restorecon /sys/devices/platform/kcal_ctrl.0/kcal_cont
+
 service irsc_util /system/bin/irsc_util "/etc/sec_config"
     class main
     user root
