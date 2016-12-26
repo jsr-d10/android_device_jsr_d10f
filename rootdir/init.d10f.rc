@@ -112,6 +112,9 @@ on boot
     chown system system /sys/class/leds/flashlight/trigger
     chmod 0666 /sys/class/leds/flashlight/trigger
 
+    # support tricolor led bct3253
+    chown system system /sys/class/leds/button-backlight/blink
+
     # Enable writing to led blink node from userspace
     chown system system /sys/class/leds/red/blink
     chown system system /sys/class/leds/red/duty_pcts
