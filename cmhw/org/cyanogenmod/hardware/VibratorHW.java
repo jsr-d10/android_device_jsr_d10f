@@ -18,19 +18,40 @@ package org.cyanogenmod.hardware;
 
 import org.cyanogenmod.internal.util.FileUtils;
 
+import android.util.Log;
+
 public class VibratorHW {
-    private static String AMP_PATH = "/sys/class/timed_output/vibrator/amp";
+
+    private static final String TAG = "VibratorHW";
+
+    private static final String DEFAULT_PATH = "/sys/class/timed_output/vibrator/vtg_max"; // S-trace: d10f does not have vtg_default, so using max level as default
+    private static final String LEVEL_PATH = "/sys/class/timed_output/vibrator/vtg_level";
+    private static final String MAX_PATH = "/sys/class/timed_output/vibrator/vtg_max";
+    private static final String MIN_PATH = "/sys/class/timed_output/vibrator/vtg_min";
 
     public static boolean isSupported() {
-        return FileUtils.isFileWritable(AMP_PATH);
+        return FileUtils.isFileWritable(LEVEL_PATH) &&
+                FileUtils.isFileReadable(DEFAULT_PATH) &&
+                FileUtils.isFileReadable(MAX_PATH) &&
+                FileUtils.isFileReadable(MIN_PATH);
     }
 
     public static int getMaxIntensity() {
-        return 100;
+        try {
+            return Integer.parseInt(FileUtils.readOneLine(MAX_PATH));
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return -1;
     }
 
     public static int getMinIntensity() {
-        return 80;
+        try {
+            return Integer.parseInt(FileUtils.readOneLine(MIN_PATH));
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return -1;
     }
 
     public static int getWarningThreshold() {
@@ -38,14 +59,24 @@ public class VibratorHW {
     }
 
     public static int getCurIntensity() {
-        return Integer.parseInt(FileUtils.readOneLine(AMP_PATH));
+        try {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_PATH));
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return -1;
     }
 
     public static int getDefaultIntensity() {
-        return 90;
+        try {
+            return Integer.parseInt(FileUtils.readOneLine(DEFAULT_PATH));
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return -1;
     }
 
     public static boolean setIntensity(int intensity) {
-        return FileUtils.writeLine(AMP_PATH, String.valueOf(intensity));
+        return FileUtils.writeLine(LEVEL_PATH, String.valueOf(intensity));
     }
 }
