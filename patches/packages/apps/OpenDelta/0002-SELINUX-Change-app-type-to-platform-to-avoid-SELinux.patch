@@ -1,0 +1,41 @@
+From 98f605ff2e3aa8484e6adca53e40886e30062462 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 5 Mar 2016 22:54:17 +0300
+Subject: [PATCH 2/2] [SELINUX] Change app type to platform to avoid SELinux
+ denials
+
+Change-Id: Idc59f9819b41e26489801ce0d4816b6d976f1bea
+---
+ Android.mk          | 1 +
+ AndroidManifest.xml | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Android.mk b/Android.mk
+index 17755b8..76c61a6 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
+ LOCAL_PACKAGE_NAME := OpenDelta
+ LOCAL_MODULE_TAGS := optional
+ LOCAL_PRIVILEGED_MODULE := true
++LOCAL_CERTIFICATE := platform
+ 
+ LOCAL_SRC_FILES := $(call all-java-files-under, src)
+ 
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index 67f23f6..0325389 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -2,7 +2,8 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+ 	package="eu.chainfire.opendelta"
+ 	android:versionCode="10"
+-	android:versionName="1.0" >
++	android:versionName="1.0"
++	android:sharedUserId="android.uid.system" >
+ 	<uses-sdk
+ 		android:minSdkVersion="23"
+ 		android:targetSdkVersion="23" />
+-- 
+2.5.0
+

@@ -1,0 +1,355 @@
+From 26e8b278780ae9a64c5b280cb4aa796e3ef7fc9f Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 22 Mar 2016 21:35:37 +0300
+Subject: [PATCH 3/3] Revert "OpenDelta: move from apache http to
+ UrlConnection"
+
+This commit breaks update from HTTP servers: https://github.com/omnirom/android_packages_apps_OpenDelta/issues/24
+This reverts commit 64545998037f363f2b35cc7f90514312fbd8399e.
+---
+ Android.mk                                    |   1 +
+ src/eu/chainfire/opendelta/UpdateService.java | 178 +++++++++++---------------
+ 2 files changed, 79 insertions(+), 100 deletions(-)
+
+diff --git a/Android.mk b/Android.mk
+index 6323ae6..17755b8 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -7,6 +7,7 @@ LOCAL_PRIVILEGED_MODULE := true
+ 
+ LOCAL_SRC_FILES := $(call all-java-files-under, src)
+ 
++LOCAL_JAVA_LIBRARIES := org.apache.http.legacy
+ LOCAL_JNI_SHARED_LIBRARIES := libopendelta
+ LOCAL_REQUIRED_MODULES := libopendelta
+ 
+diff --git a/src/eu/chainfire/opendelta/UpdateService.java b/src/eu/chainfire/opendelta/UpdateService.java
+index ec6f612..f23ad77 100644
+--- a/src/eu/chainfire/opendelta/UpdateService.java
++++ b/src/eu/chainfire/opendelta/UpdateService.java
+@@ -21,7 +21,6 @@
+ 
+ package eu.chainfire.opendelta;
+ 
+-import java.io.ByteArrayOutputStream;
+ import java.io.File;
+ import java.io.FileInputStream;
+ import java.io.FileNotFoundException;
+@@ -33,8 +32,6 @@ import java.io.UnsupportedEncodingException;
+ import java.lang.reflect.Method;
+ import java.math.BigInteger;
+ import java.net.UnknownHostException;
+-import java.net.URL;
+-import java.nio.charset.StandardCharsets;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+ import java.util.ArrayList;
+@@ -42,8 +39,17 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Locale;
+ import java.util.Date;
+-import javax.net.ssl.HttpsURLConnection;
+ 
++import org.apache.http.HttpResponse;
++import org.apache.http.HttpStatus;
++import org.apache.http.client.HttpClient;
++import org.apache.http.client.methods.HttpGet;
++import org.apache.http.impl.client.DefaultHttpClient;
++import org.apache.http.params.BasicHttpParams;
++import org.apache.http.params.HttpConnectionParams;
++import org.apache.http.params.HttpParams;
++import org.apache.http.protocol.HTTP;
++import org.apache.http.util.EntityUtils;
+ import org.json.JSONArray;
+ import org.json.JSONException;
+ import org.json.JSONObject;
+@@ -71,7 +77,6 @@ import android.os.StatFs;
+ import android.os.SystemClock;
+ import android.preference.PreferenceManager;
+ import android.text.TextUtils;
+-
+ import eu.chainfire.opendelta.BatteryState.OnBatteryStateListener;
+ import eu.chainfire.opendelta.DeltaInfo.ProgressListener;
+ import eu.chainfire.opendelta.NetworkState.OnNetworkStateListener;
+@@ -81,7 +86,7 @@ import eu.chainfire.opendelta.ScreenState.OnScreenStateListener;
+ public class UpdateService extends Service implements OnNetworkStateListener,
+ OnBatteryStateListener, OnScreenStateListener,
+ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+-    private static final int HTTP_READ_TIMEOUT = 30000;
++    private static final int HTTP_SOCKET_TIMEOUT = 30000;
+     private static final int HTTP_CONNECTION_TIMEOUT = 30000;
+ 
+     public static void start(Context context) {
+@@ -545,50 +550,32 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+         notificationManager.cancel(NOTIFICATION_ERROR);
+     }
+ 
+-    private HttpsURLConnection setupHttpsRequest(String urlStr){
+-        URL url;
+-        HttpsURLConnection urlConnection = null;
+-        try {
+-            url = new URL(urlStr);
+-            urlConnection = (HttpsURLConnection) url.openConnection();
+-            urlConnection.setConnectTimeout(HTTP_CONNECTION_TIMEOUT);
+-            urlConnection.setReadTimeout(HTTP_READ_TIMEOUT);
+-            urlConnection.setRequestMethod("GET");
+-            urlConnection.setDoInput(true);
+-            urlConnection.connect();
+-            int code = urlConnection.getResponseCode();
+-            if (code != HttpsURLConnection.HTTP_OK) {
+-                Logger.d("response: %d", code);
+-                return null;
+-            }
+-            return urlConnection;
+-        } catch (Exception e) {
+-            Logger.i("Failed to connect to server");
+-            return null;
+-        }
+-    }
+-
+     private byte[] downloadUrlMemory(String url) {
+         Logger.d("download: %s", url);
+-
+-        HttpsURLConnection urlConnection = null;
+         try {
+-            urlConnection = setupHttpsRequest(url);
+-            if(urlConnection == null) {
++            HttpParams params = new BasicHttpParams();
++            HttpConnectionParams.setConnectionTimeout(params, HTTP_CONNECTION_TIMEOUT);
++            HttpConnectionParams.setSoTimeout(params, HTTP_SOCKET_TIMEOUT);
++            HttpClient client = new DefaultHttpClient(params);
++            HttpGet request = new HttpGet(url);
++            HttpResponse response = client.execute(request);
++            int code = response.getStatusLine().getStatusCode();
++            if (code != HttpStatus.SC_OK) {
++                Logger.d("response: %d", code);
+                 return null;
+             }
+-
+-            int len = urlConnection.getContentLength();
++            int len = (int) response.getEntity().getContentLength();
+             if ((len >= 0) && (len < 1024 * 1024)) {
+-                InputStream is = urlConnection.getInputStream();
+-                int byteInt;
+-                ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+-
+-                while((byteInt = is.read()) >= 0){
+-                    byteArray.write(byteInt);
++                byte[] ret = new byte[len];
++                InputStream in = response.getEntity().getContent();
++                int pos = 0;
++                while (pos < len) {
++                    int r = in.read(ret, pos, len - pos);
++                    pos += r;
++                    if (r <= 0)
++                        return null;
+                 }
+-
+-                return byteArray.toByteArray();
++                return ret;
+             }
+             return null;
+         } catch (Exception e) {
+@@ -596,47 +583,34 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             // drops, etc. Just log it in debugging mode.
+             Logger.ex(e);
+             return null;
+-        } finally {
+-            if (urlConnection != null) {
+-                urlConnection.disconnect();
+-            }
+         }
+     }
+ 
+     private String downloadUrlMemoryAsString(String url) {
+         Logger.d("download: %s", url);
+-
+-        HttpsURLConnection urlConnection = null;
+         try {
+-            urlConnection = setupHttpsRequest(url);
+-            if(urlConnection == null){
+-                return null;
+-            }
+-
+-            InputStream is = urlConnection.getInputStream();
+-            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+-            int byteInt;
+-            
+-            while((byteInt = is.read()) >= 0){
+-                byteArray.write(byteInt);
+-            }
+-            
+-            byte[] bytes = byteArray.toByteArray();
+-            if(bytes == null){
++            HttpParams params = new BasicHttpParams();
++            HttpConnectionParams.setConnectionTimeout(params, HTTP_CONNECTION_TIMEOUT);
++            HttpConnectionParams.setSoTimeout(params, HTTP_SOCKET_TIMEOUT);
++            HttpClient client = new DefaultHttpClient(params);
++            HttpGet request = new HttpGet(url);
++            HttpResponse response = client.execute(request);
++            int code = response.getStatusLine().getStatusCode();
++            if (code != HttpStatus.SC_OK) {
++                Logger.d("response: %d", code);
+                 return null;
+             }
+-            String responseBody = new String(bytes, StandardCharsets.UTF_8);
+-            
++            String responseBody = EntityUtils.toString(response.getEntity(),
++                    HTTP.UTF_8);
+             return responseBody;
++        } catch (UnknownHostException e) {
++            Logger.i("Failed to connect to download server");
++            return null;
+         } catch (Exception e) {
+             // Download failed for any number of reasons, timeouts, connection
+             // drops, etc. Just log it in debugging mode.
+             Logger.ex(e);
+             return null;
+-        } finally {
+-            if (urlConnection != null) {
+-                urlConnection.disconnect();
+-            }
+         }
+     }
+ 
+@@ -644,7 +618,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             DeltaInfo.ProgressListener progressListener) {
+         Logger.d("download: %s", url);
+ 
+-        HttpsURLConnection urlConnection = null;
+         MessageDigest digest = null;
+         if (matchMD5 != null) {
+             try {
+@@ -657,18 +630,24 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+ 
+         if (f.exists())
+             f.delete();
+-
+         try {
+-            urlConnection = setupHttpsRequest(url);
+-            if(urlConnection == null){
++            HttpParams params = new BasicHttpParams();
++            HttpConnectionParams.setConnectionTimeout(params, HTTP_CONNECTION_TIMEOUT);
++            HttpConnectionParams.setSoTimeout(params, HTTP_SOCKET_TIMEOUT);
++            HttpClient client = new DefaultHttpClient(params);
++            HttpGet request = new HttpGet(url);
++            HttpResponse response = client.execute(request);
++            int code = response.getStatusLine().getStatusCode();
++            if (code != HttpStatus.SC_OK) {
++                Logger.d("response: %d", code);
+                 return false;
+             }
+-            long len = urlConnection.getContentLength();
++            long len = (int) response.getEntity().getContentLength();
+             long recv = 0;
+             if ((len > 0) && (len < 4L * 1024L * 1024L * 1024L)) {
+                 byte[] buffer = new byte[262144];
+ 
+-                InputStream is = urlConnection.getInputStream();
++                InputStream is = response.getEntity().getContent();
+                 FileOutputStream os = new FileOutputStream(f, false);
+                 try {
+                     int r;
+@@ -709,10 +688,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             // drops, etc. Just log it in debugging mode.
+             Logger.ex(e);
+             return false;
+-        } finally {
+-            if (urlConnection != null) {
+-                urlConnection.disconnect();
+-            }
+         }
+     }
+ 
+@@ -720,7 +695,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             String matchMD5) {
+         Logger.d("download: %s", url);
+ 
+-        HttpsURLConnection urlConnection = null;
+         MessageDigest digest = null;
+         long len = 0;
+         if (matchMD5 != null) {
+@@ -734,15 +708,21 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+ 
+         if (f.exists())
+             f.delete();
+-
+         try {
+             updateState(STATE_ACTION_DOWNLOADING, 0f, 0L, 0L, f.getName(), null);
+-            urlConnection = setupHttpsRequest(url);
+-            if(urlConnection == null){
++
++            HttpParams params = new BasicHttpParams();
++            HttpConnectionParams.setConnectionTimeout(params, HTTP_CONNECTION_TIMEOUT);
++            HttpConnectionParams.setSoTimeout(params, HTTP_SOCKET_TIMEOUT);
++            HttpClient client = new DefaultHttpClient(params);
++            HttpGet request = new HttpGet(url);
++            HttpResponse response = client.execute(request);
++            int code = response.getStatusLine().getStatusCode();
++            if (code != HttpStatus.SC_OK) {
++                Logger.d("response: %d", code);
+                 return false;
+             }
+-
+-            len = urlConnection.getContentLength();
++            len = (int) response.getEntity().getContentLength();
+ 
+             updateState(STATE_ACTION_DOWNLOADING, 0f, 0L, len, f.getName(), null);
+ 
+@@ -777,7 +757,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             if ((len > 0) && (len < 4L * 1024L * 1024L * 1024L)) {
+                 byte[] buffer = new byte[262144];
+ 
+-                InputStream is = urlConnection.getInputStream();
++                InputStream is = response.getEntity().getContent();
+                 FileOutputStream os = new FileOutputStream(f, false);
+                 try {
+                     int r;
+@@ -820,33 +800,31 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+             return false;
+         } finally {
+             updateState(STATE_ACTION_DOWNLOADING, 100f, len, len, null, null);
+-            if (urlConnection != null) {
+-                urlConnection.disconnect();
+-            }
+         }
+     }
+ 
+     private long getUrlDownloadSize(String url) {
+         Logger.d("getUrlDownloadSize: %s", url);
+ 
+-        HttpsURLConnection urlConnection = null;
+         try {
+-            urlConnection = setupHttpsRequest(url);
+-            if(urlConnection == null){
++            HttpParams params = new BasicHttpParams();
++            HttpConnectionParams.setConnectionTimeout(params, HTTP_CONNECTION_TIMEOUT);
++            HttpConnectionParams.setSoTimeout(params, HTTP_SOCKET_TIMEOUT);
++            HttpClient client = new DefaultHttpClient(params);
++            HttpGet request = new HttpGet(url);
++            HttpResponse response = client.execute(request);
++            int code = response.getStatusLine().getStatusCode();
++            if (code != HttpStatus.SC_OK) {
++                Logger.d("response: %d", code);
+                 return 0;
+             }
+-
+-            return urlConnection.getContentLength();
++            return response.getEntity().getContentLength();
+         } catch (Exception e) {
+             // Download failed for any number of reasons, timeouts, connection
+             // drops, etc. Just log it in debugging mode.
+             Logger.ex(e);
+-            return 0;
+-        } finally {
+-            if (urlConnection != null) {
+-                urlConnection.disconnect();
+-            }
+         }
++        return 0;
+     }
+ 
+     private String getNewestFullBuild() {
+-- 
+2.5.0
+
