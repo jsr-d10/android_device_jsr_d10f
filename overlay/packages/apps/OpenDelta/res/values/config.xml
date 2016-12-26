@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Property to read for ROM version -->
+    <string name="property_version">ro.ota.current_rom</string>
+
+    <!-- Property to read for device identifier -->
+    <string name="property_device">ro.product.device</string>
+
+    <!-- %s is expanded to property_version value. .zip, .delta, .update, .sign extensions added when needed -->
+    <string name="filename_base">%s</string>
+
+    <!-- URL base to find .delta files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
+    <string name="url_base_delta">http://www.myac.msk.ru/ota/d10f/cm14.1/delta/</string>
+
+    <!-- URL base to find .update and .sign files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
+    <string name="url_base_update">http://www.myac.msk.ru/ota/d10f/cm14.1/delta/</string>
+
+    <!-- URL base to find the full zip files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
+    <string name="url_base_full">http://www.myac.msk.ru/ota/d10f/cm14.1/full/</string>
+
+    <!-- URL base to fetch all builds -->
+    <string name="url_base_json">http://www.myac.msk.ru/ota/d10f/cm14.1/builds.json"</string>
+
+    <!-- Applies whole-file signature delta. Adds one extra delta step. Required if recovery verifies signatures -->
+    <item type="bool" name="apply_signature">true</item>
+    
+    <!-- (TWRP) Set this to false if the keys below aren't your ROM's -->
+    <item type="bool" name="inject_signature_enable">true</item>
+    
+    <!-- (TWRP) Verification signatures to inject. Produced by 'dumpkey.jar' (out/host) of the platform.x509 key used to sign the ZIP file -->
+    <string name="inject_signature_keys"><![CDATA[v2 {64,0x45b79b5f,{417759073,3280800988,1330740898,174639447,1246978752,1752210852,1429178873,323134290,2169691895,120683514,74436658,2442183369,3815922804,856493734,730028251,5738285,1614445983,2195005466,342936732,538635293,1430879900,2321558780,3715049053,1146301469,3398312055,4251186938,3357920767,3797380927,767343340,322312732,48384406,2512132902,2724724171,4263603463,1314412024,608553410,4235663096,3949588913,479822365,2977872779,1813315842,2785727250,1774925364,1030456485,2590363147,430037242,3830718578,4004029431,1626927190,256208195,3640190315,2945998731,2256725921,3331436258,1582597799,1628255965,2603355701,2400231002,296229085,965916868,2135890281,14015670,2590575350,3169345732},{3193693824,4118317871,1889972963,4190379598,979397324,1723128664,1144527400,1554317343,3819822961,2106168254,3814312799,621570815,2735523749,3865731844,3966370837,2933916701,177783724,2480935815,193930316,570239469,517554985,2775317529,2975747481,102466636,3726082295,3948902243,3718412776,416994736,663315898,4282005885,2734038796,137393855,3607054729,1863421807,1892215572,3585716877,1716461824,3358874535,1854472213,1550999477,4270801957,644225171,365623755,3095051662,1406634188,2052931526,3602120771,1864724398,3295681522,838848824,157324310,1815529387,889393819,2252071755,932648375,3783616765,792974661,2435911029,3582017542,2837475340,1508908573,3170813955,1047377981,2643917973}}]]></string>
+
+    <string name="android_version">dummy</string>
+
+    <string name="official_version_tag">UNOFFICIAL</string>
+</resources>
