@@ -1,0 +1,91 @@
+From cf837e77f8e5389c305572f9e6793081fb397bdb Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 8 Sep 2015 02:30:48 +0300
+Subject: [PATCH 1/3] Revert [test] again "Torch: notify TorchService of torch state
+
+when using sysfs config"
+
+This reverts commit 97b9b63eafd1ec0a491ca4b551ddefcd11791e62.
+
+Fix building Torch.apk on cm-12.1 (1/3)
+---
+ src/net/cactii/flash2/FlashDevice.java | 42 +++++++---------------------------
+ 1 file changed, 8 insertions(+), 34 deletions(-)
+
+diff --git a/src/net/cactii/flash2/FlashDevice.java b/src/net/cactii/flash2/FlashDevice.java
+index fa7a76b..288ea75 100644
+--- a/src/net/cactii/flash2/FlashDevice.java
++++ b/src/net/cactii/flash2/FlashDevice.java
+@@ -160,11 +160,6 @@ public class FlashDevice {
+             } else {
+                 // Devices with sysfs toggle and sysfs luminosity
+                 if (mFlashDeviceLuminosity != null && mFlashDeviceLuminosity.length() > 0) {
+-
+-                    if (mode != OFF) {
+-                        onStartTorch(-1);
+-                    }
+-
+                     if (mFlashDeviceWriter == null) {
+                         mFlashDeviceWriter = new FileWriter(mFlashDevice);
+                     }
+@@ -242,11 +237,6 @@ public class FlashDevice {
+                             break;
+                     }
+                 } else {
+-
+-                    if (mode != OFF) {
+-                        onStartTorch(-1);
+-                    }
+-
+                     // Devices with just a sysfs toggle
+                     if (mFlashDeviceWriter == null) {
+                         mFlashDeviceWriter = new FileWriter(mFlashDevice);
+@@ -274,29 +264,6 @@ public class FlashDevice {
+                 mWakeLock.release();
+             }
+             throw new InitializationException("Can't open flash device", e);
+-        } finally {
+-            if (mode == OFF) {
+-                onStopTorch();
+-            }
+-        }
+-    }
+-
+-    private void onStartTorch(int cameraId) {
+-        boolean result = false;
+-        try {
+-            result = mTorchService.onStartingTorch(cameraId);
+-        } catch (RemoteException e) {
+-        }
+-        if (!result) {
+-            throw new InitializationException("Camera is busy", null);
+-        }
+-    }
+-
+-    private void onStopTorch() {
+-        try {
+-            mTorchService.onStopTorch();
+-        } catch (RemoteException e) {
+-            // ignore
+         }
+     }
+ 
+@@ -319,7 +286,14 @@ public class FlashDevice {
+             throw new InitializationException("No camera available", null);
+         }
+         // disable torch
+-        onStartTorch(cameraId);
++        boolean result = false;
++        try {
++            result = mTorchService.onStartingTorch(cameraId);
++        } catch (RemoteException e) {
++        }
++        if (!result) {
++            throw new InitializationException("Camera is busy", null);
++        }
+         return Camera.open(cameraId);
+     }
+ 
+-- 
+2.5.0
+

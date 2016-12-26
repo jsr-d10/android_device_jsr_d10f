@@ -1,0 +1,63 @@
+From 58ea4b362acefe9411c64d307926b8cf33b26279 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 8 Sep 2015 02:35:40 +0300
+Subject: [PATCH 3/3] Revert "Torch: signal to framework TorchService not to
+ kill us"
+
+This reverts commit b7d5f5d1c096d5dec32af5d4255d8cfcfe9ca416.
+
+Fix building Torch.apk on cm-12.1 (3/3)
+---
+ src/net/cactii/flash2/FlashDevice.java | 13 -------------
+ 1 file changed, 13 deletions(-)
+
+diff --git a/src/net/cactii/flash2/FlashDevice.java b/src/net/cactii/flash2/FlashDevice.java
+index c863f23..76347f6 100644
+--- a/src/net/cactii/flash2/FlashDevice.java
++++ b/src/net/cactii/flash2/FlashDevice.java
+@@ -21,12 +21,8 @@ package net.cactii.flash2;
+ import android.content.Context;
+ import android.graphics.SurfaceTexture;
+ import android.hardware.Camera;
+-import android.hardware.ITorchService;
+-import android.os.IBinder;
+ import android.os.PowerManager;
+ import android.os.PowerManager.WakeLock;
+-import android.os.RemoteException;
+-import android.os.ServiceManager;
+ import android.util.Log;
+ 
+ import net.cactii.flash2.R;
+@@ -64,7 +60,6 @@ public class FlashDevice {
+     private int mFlashMode = OFF;
+ 
+     private Camera mCamera = null;
+-    private ITorchService mTorchService;
+     private SurfaceTexture mSurfaceTexture = null;
+ 
+     private FlashDevice(Context context) {
+@@ -78,9 +73,6 @@ public class FlashDevice {
+         mFlashDeviceLuminosity2 = context.getResources().getString(R.string.flashDeviceLuminosity2);
+         mUseCameraInterface = context.getResources().getBoolean(R.bool.useCameraInterface);
+ 
+-        IBinder torchBinder = ServiceManager.getService(Context.TORCH_SERVICE);
+-        mTorchService = ITorchService.Stub.asInterface(torchBinder);
+-
+         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+         this.mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Torch");
+     }
+@@ -121,11 +113,6 @@ public class FlashDevice {
+             }
+             if (mUseCameraInterface) {
+                 if (mCamera == null) {
+-                    // disable torch
+-                    try {
+-                        mTorchService.onStartingTorch();
+-                    } catch (RemoteException e) {
+-                    }
+                     mCamera = Camera.open();
+                 }
+                 if (value == OFF) {
+-- 
+1.9.1
+

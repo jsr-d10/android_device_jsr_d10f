@@ -1,0 +1,184 @@
+From a291165f4d7b3ae0097b88502c84fd5ab2130331 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 8 Sep 2015 02:34:35 +0300
+Subject: [PATCH 2/3] Revert "Make torch shutdown by camera usage work
+ properly."
+
+This reverts commit 8cf0b8bbc8bd8b44a348c6859084930f67088795.
+
+Fix building Torch.apk on cm-12.1 (2/3)
+---
+ src/net/cactii/flash2/FlashDevice.java  | 47 ++++++---------------------------
+ src/net/cactii/flash2/TorchService.java | 32 +++++-----------------
+ src/net/cactii/flash2/TorchSwitch.java  |  3 ---
+ 3 files changed, 14 insertions(+), 68 deletions(-)
+
+diff --git a/src/net/cactii/flash2/FlashDevice.java b/src/net/cactii/flash2/FlashDevice.java
+index 288ea75..c863f23 100644
+--- a/src/net/cactii/flash2/FlashDevice.java
++++ b/src/net/cactii/flash2/FlashDevice.java
+@@ -67,12 +67,6 @@ public class FlashDevice {
+     private ITorchService mTorchService;
+     private SurfaceTexture mSurfaceTexture = null;
+ 
+-    public static class InitializationException extends RuntimeException {
+-        public InitializationException(String message, Throwable cause) {
+-            super(message, cause);
+-        }
+-    }
+-
+     private FlashDevice(Context context) {
+         mValueOff = context.getResources().getInteger(R.integer.valueOff);
+         mValueOn = context.getResources().getInteger(R.integer.valueOn);
+@@ -99,7 +93,7 @@ public class FlashDevice {
+     }
+ 
+     public synchronized void setFlashMode(int mode) {
+-        Log.d(MSG_TAG, "setFlashMode " + mode);
++	Log.d(MSG_TAG, "setFlashMode " + mode);
+ 
+         if (mFlashMode == mode) return;
+ 
+@@ -127,7 +121,12 @@ public class FlashDevice {
+             }
+             if (mUseCameraInterface) {
+                 if (mCamera == null) {
+-                    mCamera = initializeCamera();
++                    // disable torch
++                    try {
++                        mTorchService.onStartingTorch();
++                    } catch (RemoteException e) {
++                    }
++                    mCamera = Camera.open();
+                 }
+                 if (value == OFF) {
+                     Camera.Parameters params = mCamera.getParameters();
+@@ -263,38 +262,8 @@ public class FlashDevice {
+             if (mWakeLock.isHeld()) {
+                 mWakeLock.release();
+             }
+-            throw new InitializationException("Can't open flash device", e);
+-        }
+-    }
+-
+-    private static int findBackFacingCamera() {
+-        int numberOfCameras = Camera.getNumberOfCameras();
+-        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+-        for (int i = 0; i < numberOfCameras; i++) {
+-            Camera.getCameraInfo(i, cameraInfo);
+-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+-                return i;
+-            }
+-        }
+-        return -1;
+-    }
+-
+-    private Camera initializeCamera() {
+-        int cameraId = findBackFacingCamera();
+-        if (cameraId < 0) {
+-            Log.wtf(MSG_TAG, "No back facing camera found");
+-            throw new InitializationException("No camera available", null);
+-        }
+-        // disable torch
+-        boolean result = false;
+-        try {
+-            result = mTorchService.onStartingTorch(cameraId);
+-        } catch (RemoteException e) {
+-        }
+-        if (!result) {
+-            throw new InitializationException("Camera is busy", null);
++            throw new RuntimeException("Can't open flash device", e);
+         }
+-        return Camera.open(cameraId);
+     }
+ 
+     public synchronized int getFlashMode() {
+diff --git a/src/net/cactii/flash2/TorchService.java b/src/net/cactii/flash2/TorchService.java
+index 9db7516..f4a0b7d 100644
+--- a/src/net/cactii/flash2/TorchService.java
++++ b/src/net/cactii/flash2/TorchService.java
+@@ -31,17 +31,18 @@ public class TorchService extends Service {
+     private static final String MSG_TAG = "TorchRoot";
+ 
+     private int mFlashMode;
+-    private FlashDevice mFlashDevice;
+-    private boolean mUseCameraInterface;
+ 
+     private static final int MSG_UPDATE_FLASH = 1;
+ 
+     private final Handler mHandler = new Handler() {
+         @Override
+         public void handleMessage(Message msg) {
++            final FlashDevice flash = FlashDevice.instance(TorchService.this);
++
+             switch (msg.what) {
+                 case MSG_UPDATE_FLASH:
+-                    setFlashModeOrStop();
++                    flash.setFlashMode(mFlashMode);
++                    removeMessages(MSG_UPDATE_FLASH);
+                     sendEmptyMessageDelayed(MSG_UPDATE_FLASH, 100);
+                     break;
+             }
+@@ -49,12 +50,6 @@ public class TorchService extends Service {
+     };
+ 
+     @Override
+-    public void onCreate() {
+-        mFlashDevice = FlashDevice.instance(this);
+-        mUseCameraInterface = getResources().getBoolean(R.bool.useCameraInterface);
+-    }
+-
+-    @Override
+     public int onStartCommand(Intent intent, int flags, int startId) {
+         Log.d(MSG_TAG, "Starting torch");
+ 
+@@ -65,14 +60,8 @@ public class TorchService extends Service {
+ 
+         mFlashMode = intent.getBooleanExtra("bright", false)
+                 ? FlashDevice.DEATH_RAY : FlashDevice.ON;
+-        if (mUseCameraInterface) {
+-            // Devices with camera interface don't need constant refresh, so don't do
+-            // it in order to avoid the refresh from interfering with the synchronous
+-            // torch shutdown when starting the camera app
+-            setFlashModeOrStop();
+-        } else {
+-            mHandler.sendEmptyMessage(MSG_UPDATE_FLASH);
+-        }
++
++        mHandler.sendEmptyMessage(MSG_UPDATE_FLASH);
+ 
+         startForeground(getString(R.string.app_name).hashCode(), getNotification());
+         updateState(true);
+@@ -112,15 +101,6 @@ public class TorchService extends Service {
+         return null;
+     }
+ 
+-    private void setFlashModeOrStop() {
+-        try {
+-            mFlashDevice.setFlashMode(mFlashMode);
+-        } catch (FlashDevice.InitializationException e) {
+-            Log.w(MSG_TAG, "Could not set flash mode " + mFlashMode, e);
+-            stopSelf();
+-        }
+-    }
+-
+     private void updateState(boolean on) {
+         Intent intent = new Intent(TorchSwitch.TORCH_STATE_CHANGED);
+         intent.putExtra("state", on ? 1 : 0);
+diff --git a/src/net/cactii/flash2/TorchSwitch.java b/src/net/cactii/flash2/TorchSwitch.java
+index 14b0084..9e46b15 100644
+--- a/src/net/cactii/flash2/TorchSwitch.java
++++ b/src/net/cactii/flash2/TorchSwitch.java
+@@ -48,9 +48,6 @@ public class TorchSwitch extends BroadcastReceiver {
+ 
+             Intent i = new Intent(context, TorchService.class);
+             if (stop || torchServiceRunning(context)) {
+-                if (stop) {
+-                    FlashDevice.instance(context).setFlashMode(FlashDevice.OFF);
+-                }
+                 context.stopService(i);
+             } else {
+                 i.putExtra("bright", bright);
+-- 
+1.9.1
+

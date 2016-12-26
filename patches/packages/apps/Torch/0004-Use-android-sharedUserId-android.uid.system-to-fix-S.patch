@@ -1,0 +1,29 @@
+From b2f3efecda1308f107583e1b823317b02c67c39c Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 16 Jan 2016 09:56:00 +0300
+Subject: [PATCH 4/4] Use android:sharedUserId="android.uid.system" to fix
+ SELinux issues
+
+Change-Id: If2d2cfc00e7fd0eb07cc29da16231fee7cfebdd2
+---
+ AndroidManifest.xml | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index bcbb4a8..a373b89 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -17,7 +17,9 @@
+      MA  02110-1301, USA.
+ -->
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+-    package="net.cactii.flash2">
++    package="net.cactii.flash2"
++    android:sharedUserId="android.uid.system" >
++
+ 
+     <uses-feature android:name="android.hardware.camera" />
+     <uses-feature android:name="android.hardware.camera.flash" />
+-- 
+2.5.0
+

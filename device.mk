@@ -160,6 +160,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     OpenDelta
 
+# Torch
+PRODUCT_PACKAGES += \
+    Torch
+
 # Permissions
 PRODUCT_COPY_FILES += \
     external/ant-wireless/antradio-library/com.dsi.ant.antradio_library.xml:system/etc/permissions/com.dsi.ant.antradio_library.xml \
