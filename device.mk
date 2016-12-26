@@ -144,6 +144,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
     media.stagefright.legacyencoder=true \
     media.stagefright.less-secure=true
 
+# Custom Settings page
+PRODUCT_PACKAGES += \
+    JSR_Settings
+    
 # OpenDelta
 PRODUCT_PACKAGES += \
     OpenDelta
