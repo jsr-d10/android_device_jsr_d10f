@@ -159,6 +159,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     OpenDelta
 
+# This build information
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/buildinfo/build-manifest.xml:system/etc/build-manifest.xml \
+    $(LOCAL_PATH)/buildinfo/CHANGES.txt:system/etc/CHANGES.txt \
+    $(LOCAL_PATH)/buildinfo/repo_state.txt:system/etc/repo_state.txt
+
 # Torch
 PRODUCT_PACKAGES += \
     Torch

@@ -1,0 +1,2 @@
+This is a dummy stats, which should be replaced to real stats data by build script during build. 
+If you found this in ROM - something is wrong with mine build system, please report.
