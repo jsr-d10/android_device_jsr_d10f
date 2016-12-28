@@ -1,0 +1,42 @@
+From 6dcf2bf1015aa2242d3e4f41ea28fff905e07384 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Wed, 28 Dec 2016 03:29:11 +0300
+Subject: [PATCH] [CMHW] CMHardwareService: Untangle PictureAdjustment from
+ ColorBalance
+
+This features are unrelated!
+---
+ .../platform/internal/CMHardwareService.java            | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/cm/lib/main/java/org/cyanogenmod/platform/internal/CMHardwareService.java b/cm/lib/main/java/org/cyanogenmod/platform/internal/CMHardwareService.java
+index 64cc87d..d87ba61 100644
+--- a/cm/lib/main/java/org/cyanogenmod/platform/internal/CMHardwareService.java
++++ b/cm/lib/main/java/org/cyanogenmod/platform/internal/CMHardwareService.java
+@@ -856,16 +856,13 @@ public class CMHardwareService extends CMSystemService implements ThermalUpdateC
+         public float[] getPictureAdjustmentRanges() {
+             mContext.enforceCallingOrSelfPermission(
+                     cyanogenmod.platform.Manifest.permission.HARDWARE_ABSTRACTION_ACCESS, null);
+-            if (isSupported(CMHardwareManager.FEATURE_COLOR_BALANCE)) {
+-                final List<Range<Float>> r = mCmHwImpl.getPictureAdjustmentRanges();
+-                return new float[] {
+-                        r.get(0).getLower(), r.get(0).getUpper(),
+-                        r.get(1).getLower(), r.get(1).getUpper(),
+-                        r.get(2).getLower(), r.get(2).getUpper(),
+-                        r.get(3).getLower(), r.get(3).getUpper(),
+-                        r.get(4).getUpper(), r.get(4).getUpper() };
+-            }
+-            return new float[10];
++            final List<Range<Float>> r = mCmHwImpl.getPictureAdjustmentRanges();
++            return new float[] {
++                    r.get(0).getLower(), r.get(0).getUpper(),
++                    r.get(1).getLower(), r.get(1).getUpper(),
++                    r.get(2).getLower(), r.get(2).getUpper(),
++                    r.get(3).getLower(), r.get(3).getUpper(),
++                    r.get(4).getUpper(), r.get(4).getUpper() };
+         }
+     };
+ }
+-- 
+2.9.3
+
