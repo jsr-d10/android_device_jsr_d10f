@@ -194,6 +194,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_BOOT_JARS += \
     qcmediaplayer
 
+# This build information
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/buildinfo/build-manifest.xml:system/etc/build-manifest.xml \
+    $(LOCAL_PATH)/buildinfo/CHANGES.txt:system/etc/CHANGES.txt \
+    $(LOCAL_PATH)/buildinfo/repo_state.txt:system/etc/repo_state.txt
+
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml \
