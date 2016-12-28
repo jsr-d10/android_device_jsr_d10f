@@ -1,0 +1,26 @@
+From 3c834e568301e8cff0e24ad70b7c410df20923bf Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Fri, 15 Jan 2016 01:33:14 +0300
+Subject: [PATCH 3/4] [RECOVERY] props: override ro.build.date.utc for recovery
+ builds
+
+Change-Id: Id9b062c1fd052f405333b5bb3ebe5bbef5d48839
+---
+ core/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/Makefile b/core/Makefile
+index 6860bd9..d8e0f1f 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -1089,6 +1089,7 @@ define build-recoveryramdisk
+   $(hide) cp $(RECOVERY_INSTALL_OTA_KEYS) $(TARGET_RECOVERY_ROOT_OUT)/res/keys
+   $(hide) cat $(INSTALLED_DEFAULT_PROP_TARGET) $(recovery_build_prop) \
+           > $(TARGET_RECOVERY_ROOT_OUT)/default.prop
++  $(hide) sed -i 's/ro.build.date.utc=.*/ro.build.date.utc=0/g' $(TARGET_RECOVERY_ROOT_OUT)/default.prop
+   $(BOARD_RECOVERY_IMAGE_PREPARE)
+   $(if $(filter true,$(BOARD_BUILD_SYSTEM_ROOT_IMAGE)), \
+     $(hide) mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system_root; \
+-- 
+2.9.3
+

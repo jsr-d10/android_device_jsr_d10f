@@ -1,0 +1,88 @@
+From 7fbf0a534f522f2c2d27f2c7e8d7bb470da7f579 Mon Sep 17 00:00:00 2001
+From: remittor <remittor@gmail.com>
+Date: Thu, 30 Jul 2015 17:30:59 +0300
+Subject: [PATCH 2/4] [PROPS] Add hook functions to post_process_props.py
+
+Change-Id: I8e7604d169eaa69ddb0d29a578cb992bdf791ff9
+---
+ tools/post_process_props.py      |  3 +++
+ tools/post_process_props_hook.py | 44 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+)
+ create mode 100644 tools/post_process_props_hook.py
+
+diff --git a/tools/post_process_props.py b/tools/post_process_props.py
+index aa67755..e04cf90 100755
+--- a/tools/post_process_props.py
++++ b/tools/post_process_props.py
+@@ -15,6 +15,7 @@
+ # limitations under the License.
+ 
+ import sys
++from post_process_props_hook import *
+ 
+ 
+ def iteritems(obj):
+@@ -137,8 +138,10 @@ def main(argv):
+ 
+   if filename.endswith("/build.prop"):
+     mangle_build_prop(properties, extraargs)
++    mangle_build_prop_hook(properties, extraargs)
+   elif filename.endswith("/default.prop"):
+     mangle_default_prop(properties)
++    mangle_default_prop_hook(properties)
+   else:
+     sys.stderr.write("bad command line: " + str(argv) + "\n")
+     sys.exit(1)
+diff --git a/tools/post_process_props_hook.py b/tools/post_process_props_hook.py
+new file mode 100644
+index 0000000..572acea
+--- /dev/null
++++ b/tools/post_process_props_hook.py
+@@ -0,0 +1,44 @@
++#!/usr/bin/env python
++
++import os, sys, time
++
++# Put the modifications that you need to make into the /system/build.prop into this
++# function. The prop object has get(name) and put(name,value) methods.
++def mangle_build_prop_hook(prop, overrides):
++  """call mangle_build_prop_hook"""
++
++  prop.put("ro.com.android.dateformat", "yyyy-MM-dd")
++
++  ver_inc = prop.get("ro.build.version.incremental")
++
++  prod_dev = prop.get("ro.cm.device")
++  outdir = "out/target/product/" + prod_dev + "/"
++
++  cm_ver = prop.get("ro.cm.version")
++  cm_ver_arr = cm_ver.split("-")
++  build_type = prop.get("ro.build.type")
++  time_utc = time.gmtime(float(prop.get("ro.build.date.utc")))
++  time_str = time.strftime("%Y%m%d-%H%M", time_utc)
++  rom_name = "cm-" + cm_ver_arr[0] + "-" + time_str + "-" + prod_dev + "-UNOFFICIAL"
++  prop.put("ro.ota.current_rom", rom_name)
++
++  txt = open(outdir + "ro_ota_current_rom", "w")
++  txt.write(rom_name)
++  txt.close()
++
++  out_zip = "cm-" + cm_ver + ".zip"
++  txt = open(outdir + "rom_out_package", "w")
++  txt.write(out_zip)
++  txt.close()
++
++  out_ota_zip = rom_name + ".zip"
++  txt = open(outdir + "rom_ota_name", "w")
++  txt.write(out_ota_zip)
++  txt.close()
++  pass
++
++# Put the modifications that you need to make into the /system/build.prop into this
++# function. The prop object has get(name) and put(name,value) methods.
++def mangle_default_prop_hook(prop):
++  """call mangle_default_prop_hook"""
++  pass
+-- 
+2.9.3
+
