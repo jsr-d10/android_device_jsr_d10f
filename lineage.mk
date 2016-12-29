@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2015 The CyanogenMod Project
+# Copyright (C) 2017 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,12 +20,12 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, device/jsr/d10f/device.mk)
 $(call inherit-product-if-exists, vendor/jsr/d10f/d10f-vendor.mk)
 
-# Inherit some common CM stuff
+# Inherit some common LineageOS stuff
 $(call inherit-product, vendor/cm/config/common_mini_phone.mk)
 
 # Device identifier. This must come after all inclusions.
 PRODUCT_DEVICE := d10f
-PRODUCT_NAME := cm_d10f
+PRODUCT_NAME := lineage_d10f
 PRODUCT_BRAND := JSR
 PRODUCT_MODEL := D10F
 PRODUCT_MANUFACTURER := JSR Tech
