@@ -223,7 +223,7 @@ static int get_partition_number(const char *part_name)
  * Return 0 on success, negative value if failed */
 static int add_fstab_entry(
     int fd,
-    int t,
+    int fstab_type,
     int search_order,
     const char *part_name,
     const char *mnt_point,
@@ -243,7 +243,7 @@ static int add_fstab_entry(
     char fs_mgr_flags_fixed[PROP_VALUE_MAX] = {0};
     snprintf(fs_mgr_flags_fixed, PROP_VALUE_MAX, fs_mgr_flags, partition_number);
 
-    switch (t) {
+    switch (fstab_type) {
         case FSTAB_TYPE_REGULAR:
         case FSTAB_TYPE_RECOVERY:
             ret = dprintf(fd, "%s %s %s %s %s\n", full_part_name, mnt_point, type, mnt_flags, fs_mgr_flags_fixed);
@@ -252,7 +252,7 @@ static int add_fstab_entry(
             ret = dprintf(fd, "%s %s %s %s %s\n", mnt_point, type, full_part_name, mnt_flags, fs_mgr_flags_fixed);
             break;
         default:
-            ERROR("%s: ERROR: invalid partition type %d!", __func__, t);
+            ERROR("%s: ERROR: invalid fstab type %d!", __func__, fstab_type);
             ret = -1;
             break;
     }
