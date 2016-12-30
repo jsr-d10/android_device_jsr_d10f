@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <string>
+#include <string.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
@@ -32,7 +32,7 @@
 /* Load STORAGE_CONFIG_PROP from PERSISTENT_PROPERTY_DIR
  * We need to get it earlier than vendor init to make working fstab */
 static void load_storage_config_prop() {
-    std::unique_ptr<DIR, int(*)(DIR*)> dir(opendir(PERSISTENT_PROPERTY_DIR), closedir);
+    DIR* dir = opendir(PERSISTENT_PROPERTY_DIR);
     if (!dir) {
         ERROR("Unable to open persistent property directory \"%s\": %s\n",
               PERSISTENT_PROPERTY_DIR, strerror(errno));
@@ -40,7 +40,7 @@ static void load_storage_config_prop() {
     }
 
     struct dirent* entry;
-    while ((entry = readdir(dir.get())) != NULL) {
+    while ((entry = readdir(dir)) != NULL) {
         if (strncmp(STORAGE_CONFIG_PROP, entry->d_name, strlen(STORAGE_CONFIG_PROP))) {
             continue;
         }
@@ -49,7 +49,7 @@ static void load_storage_config_prop() {
         }
 
         // Open the file and read the property value.
-        int fd = openat(dirfd(dir.get()), entry->d_name, O_RDONLY | O_NOFOLLOW);
+        int fd = openat(dirfd(dir), entry->d_name, O_RDONLY | O_NOFOLLOW);
         if (fd == -1) {
             ERROR("Unable to open persistent property file \"%s\": %s\n",
                   entry->d_name, strerror(errno));
@@ -116,45 +116,45 @@ static char *lookup_for_partition(const char *part_name, int search_order) {
 
         case RAWDEV:
             if (check_for_partition(RAWDEV, part_name))
-                partition_is_found = true;
+                partition_is_found = TRUE;
             break;
 
         case SDCC_1:
             if (check_for_partition(SDCC_1, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_1;
             }
             break;
 
         case SDCC_2:
             if (check_for_partition(SDCC_2, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_2;
             }
             break;
 
         case SDCC_1_2:
             if (check_for_partition(SDCC_1, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_1;
             } else if (check_for_partition(SDCC_2, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_2;
             }
             break;
 
         case SDCC_2_1:
             if (check_for_partition(SDCC_2, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_2;
             } else if (check_for_partition(SDCC_1, part_name)) {
-                partition_is_found = true;
+                partition_is_found = TRUE;
                 sdcc = SDCC_1;
             }
             break;
 
         case JUST_ADD_IT:
-            partition_is_found = true;
+            partition_is_found = TRUE;
             break;
 
         default:

@@ -15,17 +15,14 @@
  */
 
 #include "log.h"
-
+#include <libgen.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/uio.h>
 
-// #include <selinux/selinux.h>
-
-#include <android-base/stringprintf.h>
 
 static void init_klog_vwrite(int level, const char* fmt, va_list ap) {
-    static const char* tag = basename(getprogname());
+    const char* tag = basename(getprogname());
 
     if (level > klog_get_level()) return;
 
@@ -40,7 +37,7 @@ static void init_klog_vwrite(int level, const char* fmt, va_list ap) {
                             "(%zu-byte message too long for printk)\n", msg_size);
     }
 
-    iovec iov[1];
+    struct iovec iov[1];
     iov[0].iov_base = buf;
     iov[0].iov_len = prefix_size + msg_size;
 
