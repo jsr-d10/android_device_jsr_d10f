@@ -201,7 +201,7 @@ static int get_partition_number(const char *part_name)
         return -1;
 
 
-    char *full_part_name = lookup_for_partition("usbmsc", sdcc);
+    char *full_part_name = lookup_for_partition(part_name, sdcc);
     if (full_part_name)
         readlink(full_part_name, raw_blockdev_name, PROP_VALUE_MAX);
 
