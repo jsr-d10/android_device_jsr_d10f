@@ -488,7 +488,36 @@ static void remount_rootfs(unsigned long *flags)
     return;
 }
 
-int process_fstab(const char *fstab_name, int fstab_type, int fstab_action)
+static void print_fstab(const char *fstab_name)
+{
+  FILE *mf = fopen(fstab_name, "r");
+  if (!mf) {
+    ERROR("%d: mf not opened: %s", __LINE__,strerror(errno));
+    return;
+  }
+  while (1)
+   {
+      char str[512];
+      char *estr = fgets (str,sizeof(str),mf);
+      if (estr == NULL)
+      {
+         if ( feof (mf) != 0)
+         {
+            ERROR("INFO: End of fstab\n");
+            break;
+         }
+         else
+         {
+            ERROR("ERROR: Error reading fstab: %s\n", strerror(errno));
+            break;
+         }
+      }
+      ERROR("%s\n", str);
+   }
+   fclose(mf);
+}
+
+int process_fstab(const char *fstab_name, const int fstab_type, const int fstab_action)
 {
     int counter = 0;
     char config[PROP_VALUE_MAX] = {0};
@@ -528,6 +557,8 @@ int process_fstab(const char *fstab_name, int fstab_type, int fstab_action)
 
     if (fd >= 0) {
         ERROR("opened '%s' (fd=%d)\n", fstab_name, fd);
+        ERROR("FSTAB before processing:\n");
+        print_fstab(fstab_name);
         switch (fstab_type) {
             case FSTAB_TYPE_REGULAR:
                 if (fstab_action == FSTAB_ACTION_GENERATE)
@@ -551,7 +582,9 @@ int process_fstab(const char *fstab_name, int fstab_type, int fstab_action)
                 ERROR("Error: Unknown fstab type (%d)\n", fstab_type);
 
         }
-         close(fd);
+        ERROR("FSTAB after processing:\n");
+        print_fstab(fstab_name);
+        close(fd);
     } else {
         ERROR("could not open '%s' (%s)\n", fstab_name, strerror(errno));
         goto failure;
