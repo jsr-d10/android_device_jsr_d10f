@@ -7,5 +7,9 @@
     "repository": "android_kernel_jsr_msm8226,
     "target_path": "kernel/jsr/msm8226"
     "branch":      "mm-qc-snd"
+  },
+  {
+    "repository": "android_vendor_jsr_d10f",
+    "target_path": "vendor/jsr/d10f"
   }
 ]
