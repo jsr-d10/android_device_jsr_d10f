@@ -341,7 +341,7 @@ static int update_regular_fstab(int fd, int type, int storage_config, int sdcc_c
 {
     int ret = 0;
     (void)sdcc_config;
-    ERROR("%s: stprage_config=%d, sdcc_config=%d\n", __func__, storage_config, sdcc_config);
+    ERROR("%s: storage_config=%d, sdcc_config=%d\n", __func__, storage_config, sdcc_config);
     switch (storage_config) {
         case STORAGE_CONFIGURATION_CLASSIC:
             switch (sdcc_config) {
