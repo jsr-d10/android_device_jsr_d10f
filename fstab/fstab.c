@@ -327,7 +327,7 @@ static int generate_twrp_fstab(int fd, int type, int sdcc_config)
             ret += add_fstab_entry(fd, type, RAWDEV, "mmcblk1rpmb", "/rpmb", "emmc", "flags=backup=1;subpartitionof=/full", "");
             break;
         case ISOLATED:
-            ERROR("%s: sdcc_config = isolated, not ading\n", __func__);
+            ERROR("%s: sdcc_config = isolated, not ading eMMC backup partition record\n", __func__);
             break;
 
         default:
