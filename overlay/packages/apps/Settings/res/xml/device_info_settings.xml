@@ -45,13 +45,13 @@
         </PreferenceScreen
   >
 
-        <!-- CyanogenMod Updates -->
+        <!-- LineageOS Updates -->
         <cyanogenmod.preference.SelfRemovingPreference
       android:key="cm_updates"
       android:title="@string/system_update_settings_list_item_title"
       android:summary="@string/system_update_settings_list_item_summary"
       cm:requiresOwner="true"
-      cm:requiresPackage="com.cyanogenmod.updater"
+      cm:requiresPackage="eu.chainfire.opendelta"
     >
             <intent
         android:action="android.intent.action.MAIN"
