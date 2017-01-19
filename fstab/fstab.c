@@ -196,27 +196,43 @@ static int get_partition_number(const char *part_name)
 {
     int part_number = -1;
     char raw_blockdev_name[PROP_VALUE_MAX] = {0};
+    char partition[PROP_VALUE_MAX] = {0};
     int sdcc = -1;
-    if (sscanf(part_name, "/devices/msm_sdcc.%d/mmc_host*", &sdcc) != 1)
-        return -1;
-
-
-    char *full_part_name = lookup_for_partition(part_name, sdcc);
-    if (full_part_name)
-        readlink(full_part_name, raw_blockdev_name, PROP_VALUE_MAX);
-
-    ERROR("%s: sdcc=%d (%s): %s\n", __func__, sdcc, full_part_name, raw_blockdev_name);
-
-    if (strlen(raw_blockdev_name)) {
-        if (sscanf(raw_blockdev_name, "/dev/block/mmcblk%dp%d", &sdcc, &part_number) != 2) {
-            ERROR("%s: sscanf() failed: %d(%s)\n", __func__, errno, strerror(errno));
-            return -1;
-        }
-        ERROR("%s: part_number for %s on sdcc%d is %d\n", __func__, full_part_name, sdcc, part_number);
+    if (sscanf(part_name, "/devices/msm_sdcc.%d/mmc_host*", &sdcc) == 1) {
+        ERROR("%s: recursively detecting partition usbmsc on sdcc%d\n", __func__, sdcc);
+        snprintf(raw_blockdev_name, PROP_VALUE_MAX, "/dev/block/platform/msm_sdcc.%d/by-name/usbmsc", sdcc);
+        return get_partition_number(raw_blockdev_name);
     }
 
-    free(full_part_name);
-    return part_number;
+    if (sscanf(part_name, "/dev/block/platform/msm_sdcc.%d/by-name/%s", &sdcc, partition) == 2) {
+      char *full_part_name = lookup_for_partition(partition, sdcc);
+      if (full_part_name){
+        if (readlink(full_part_name, raw_blockdev_name, PROP_VALUE_MAX) == -1) {
+          ERROR("%s: readlink() failed for %s (%s)\n", __func__, full_part_name, strerror(errno));
+          return -2;
+        }
+      } else {
+        ERROR("%s: lookup_for_partition() returned NULL for %s on sdcc %d\n", __func__, partition, sdcc);
+        return -3;
+      }
+
+      ERROR("%s: sdcc=%d (%s): %s\n", __func__, sdcc, full_part_name, raw_blockdev_name);
+
+      if (strlen(raw_blockdev_name)) {
+        if (sscanf(raw_blockdev_name, "/dev/block/mmcblk%dp%d", &sdcc, &part_number) != 2) {
+          ERROR("%s: sscanf() failed: %d(%s)\n", __func__, errno, strerror(errno));
+          return -1;
+        }
+        sdcc += 1;
+        ERROR("%s: part_number for %s on sdcc%d is %d\n", __func__, full_part_name, sdcc, part_number);
+      }
+
+      free(full_part_name);
+      return part_number;
+    }
+    
+    ERROR("%s: Should not reach here!\n", __func__);
+    return -4;
 }
 
 /* Add partition to fstab, if exist
