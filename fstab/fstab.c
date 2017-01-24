@@ -290,7 +290,7 @@ static int generate_regular_fstab(int fd, int type, int sdcc_config)
     ret += add_fstab_entry(fd, type, SDCC_1, "modem",    "/firmware", "vfat", "ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:firmware_file:s0", "wait");
     ret += add_fstab_entry(fd, type, SDCC_1, "boot",     "/boot",     "emmc", "defaults", "defaults");
     ret += add_fstab_entry(fd, type, SDCC_1, "recovery", "/recovery", "emmc", "defaults", "defaults");
-    ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/platform/msm_hsusb_host/usb", "/storage/usbdisk", "vfat", "nosuid,nodev", "voldmanaged=usbdisk:auto");
+    ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/platform/msm_hsusb_host/usb*", "auto", "auto", "defaults", "voldmanaged=usb:auto");
     return (ret == 0 ? TRUE : FALSE);
 }
 
@@ -308,7 +308,7 @@ static int generate_recovery_fstab(int fd, int type, int sdcc_config)
     ret += add_fstab_entry(fd, type, SDCC_1, "modem",    "/firmware", "vfat", "rw,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:firmware_file:s0", "wait"); // rw here is requied to avoid issues with TWRP!
     ret += add_fstab_entry(fd, type, SDCC_1, "boot",     "/boot",     "emmc", "defaults", "defaults");
     ret += add_fstab_entry(fd, type, SDCC_1, "recovery", "/recovery", "emmc", "defaults", "defaults");
-    ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/platform/msm_hsusb_host/usb", "/storage/usbdisk", "vfat", "nosuid,nodev", "voldmanaged=usbdisk:auto");
+    ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/platform/msm_hsusb_host/usb*", "auto", "auto", "defaults", "voldmanaged=usb:auto");
     return (ret == 0 ? TRUE : FALSE);
 }
 
