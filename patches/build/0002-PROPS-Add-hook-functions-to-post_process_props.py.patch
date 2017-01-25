@@ -60,14 +60,14 @@ index 0000000..572acea
 +  build_type = prop.get("ro.build.type")
 +  time_utc = time.gmtime(float(prop.get("ro.build.date.utc")))
 +  time_str = time.strftime("%Y%m%d-%H%M", time_utc)
-+  rom_name = "cm-" + cm_ver_arr[0] + "-" + time_str + "-" + prod_dev + "-UNOFFICIAL"
++  rom_name = "lineage-" + cm_ver_arr[0] + "-" + time_str + "-" + prod_dev + "-UNOFFICIAL"
 +  prop.put("ro.ota.current_rom", rom_name)
 +
 +  txt = open(outdir + "ro_ota_current_rom", "w")
 +  txt.write(rom_name)
 +  txt.close()
 +
-+  out_zip = "cm-" + cm_ver + ".zip"
++  out_zip = "lineage-" + cm_ver + ".zip"
 +  txt = open(outdir + "rom_out_package", "w")
 +  txt.write(out_zip)
 +  txt.close()
