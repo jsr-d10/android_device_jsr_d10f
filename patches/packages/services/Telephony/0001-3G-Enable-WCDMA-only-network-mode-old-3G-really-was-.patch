@@ -1,8 +1,8 @@
-From 138c4506af0345af5dbc45a8544c4d76c6581b08 Mon Sep 17 00:00:00 2001
+From 83b78ad90135d979b60ffeefe72301cb2a0d4e1b Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Wed, 9 Dec 2015 10:16:45 +0300
-Subject: [PATCH] [3G] Enable WCDMA only network mode (old 3G really was
- GSM/WCDMA preferred)
+Subject: [PATCH] [3G] Enable WCDMA only network mode (old 3G really was GSM/WCDMA
+ preferred)
 
 Change-Id: I7439a6e8277564343475492c0fc23f545f4a5a19
 ---
@@ -11,10 +11,10 @@ Change-Id: I7439a6e8277564343475492c0fc23f545f4a5a19
  2 files changed, 17 insertions(+), 2 deletions(-)
 
 diff --git a/res/values/strings.xml b/res/values/strings.xml
-index 3effc8b..5ba3f49 100644
+index e789a02..989bc25 100644
 --- a/res/values/strings.xml
 +++ b/res/values/strings.xml
-@@ -687,6 +687,7 @@
+@@ -686,6 +686,7 @@
      <string name="network_lte">LTE (recommended)</string>
      <string name="network_4G">4G (recommended)</string>
      <string name="network_3G" translatable="false">3G</string>
@@ -22,7 +22,7 @@ index 3effc8b..5ba3f49 100644
      <string name="network_2G" translatable="false">2G</string>
      <string name="network_1x" translatable="false">1x</string>
      <string name="network_global">Global</string>
-@@ -706,12 +707,15 @@
+@@ -704,12 +705,15 @@
      </string-array>
  
      <string-array name="enabled_networks_except_lte_choices" translatable="false">
@@ -40,18 +40,18 @@ index 3effc8b..5ba3f49 100644
  
      <string-array name="enabled_networks_except_gsm_lte_choices" translatable="false">
 diff --git a/src/com/android/phone/MobileNetworkSettings.java b/src/com/android/phone/MobileNetworkSettings.java
-index dffc992..3a662e2 100644
+index 2434599..b46089f 100644
 --- a/src/com/android/phone/MobileNetworkSettings.java
 +++ b/src/com/android/phone/MobileNetworkSettings.java
-@@ -916,6 +916,7 @@ public class MobileNetworkSettings extends PreferenceActivity
-                 switch (buttonNetworkMode) {
-                     case Phone.NT_MODE_WCDMA_PREF:
-                     case Phone.NT_MODE_GSM_ONLY:
-+                    case Phone.NT_MODE_WCDMA_ONLY:
-                     case Phone.NT_MODE_LTE_GSM_WCDMA:
-                     case Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                     case Phone.NT_MODE_CDMA:
-@@ -1175,12 +1176,22 @@ public class MobileNetworkSettings extends PreferenceActivity
+@@ -815,6 +815,7 @@ public class MobileNetworkSettings extends PreferenceActivity
+             switch (buttonNetworkMode) {
+                 case Phone.NT_MODE_WCDMA_PREF:
+                 case Phone.NT_MODE_GSM_ONLY:
++                case Phone.NT_MODE_WCDMA_ONLY:
+                 case Phone.NT_MODE_LTE_GSM_WCDMA:
+                 case Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                 case Phone.NT_MODE_CDMA:
+@@ -1072,12 +1073,22 @@ public class MobileNetworkSettings extends PreferenceActivity
                  mButtonEnabledNetworks.setSummary(R.string.network_3G);
                  break;
              case Phone.NT_MODE_WCDMA_ONLY:
@@ -76,5 +76,5 @@ index dffc992..3a662e2 100644
                      mButtonEnabledNetworks.setValue(
                              Integer.toString(Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA));
 -- 
-2.5.0
+2.9.3
 
