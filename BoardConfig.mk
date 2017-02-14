@@ -134,6 +134,24 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 BOARD_NO_SECURE_DISCARD := true
 
+# Uncomment next line to build TWRP
+# RECOVERY_VARIANT := twrp
+ifeq ($(RECOVERY_VARIANT), twrp)
+	TWHAVE_SELINUX := true
+	TARGET_RECOVERY_QCOM_RTC_FIX := true
+	TW_TARGET_USES_QCOM_BSP := true
+	TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+	TW_SECONDARY_BRIGHTNESS_PATH := /sys/class/leds/button-backlight/brightness
+	TW_THEME := portrait_hdpi
+	TW_NO_EXFAT_FUSE := true
+	TW_INCLUDE_NTFS_3G := true
+	TW_USE_TOOLBOX := true
+	PRODUCT_EXTRA_RECOVERY_KEYS += \
+		vendor/jsr/security/cm-12.1/releasekey \
+		vendor/jsr/security/cm-13.0/releasekey \
+		vendor/jsr/security/cm-14.1/releasekey
+endif
+
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
 
