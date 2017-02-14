@@ -69,6 +69,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Camera
 PRODUCT_PACKAGES += \
+    libboringssl-compat \
     libxml2 \
     Snap
 
