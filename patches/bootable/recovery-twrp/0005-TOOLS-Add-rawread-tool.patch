@@ -1,0 +1,158 @@
+From 7fdaf54aa7ed067384e37b5878955155bde96537 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 28 Mar 2016 04:50:24 +0300
+Subject: [PATCH 5/7] [TOOLS] Add rawread tool
+
+Change-Id: Ie7edeb79a41eb8c0e4afbc172bf989cadf0f834f
+---
+ Android.mk          |  2 ++
+ prebuilt/Android.mk |  1 +
+ rawread/Android.mk  | 11 +++++++
+ rawread/rawread.c   | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 99 insertions(+)
+ create mode 100644 rawread/Android.mk
+ create mode 100644 rawread/rawread.c
+
+diff --git a/Android.mk b/Android.mk
+index 3166986..a8af7d8 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -347,6 +347,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES := \
+     erase_image \
+     flash_image \
+     viewmem_twrp \
++    rawread \
+     mke2fs.conf \
+     pigz \
+     teamwin \
+@@ -629,6 +630,7 @@ include $(commands_recovery_local_path)/injecttwrp/Android.mk \
+     $(commands_recovery_local_path)/gui/Android.mk \
+     $(commands_recovery_local_path)/mmcutils/Android.mk \
+     $(commands_recovery_local_path)/viewmem/Android.mk \
++    $(commands_recovery_local_path)/rawread/Android.mk \
+     $(commands_recovery_local_path)/bmlutils/Android.mk \
+     $(commands_recovery_local_path)/prebuilt/Android.mk \
+     $(commands_recovery_local_path)/mtdutils/Android.mk \
+diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
+index 3637d82..8298d28 100644
+--- a/prebuilt/Android.mk
++++ b/prebuilt/Android.mk
+@@ -40,6 +40,7 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/tune2fs
+ RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/resize2fs
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/simg2img
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/viewmem
++RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/rawread
+ ifneq ($(TARGET_ARCH), x86_64)
+     RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/linker
+ endif
+diff --git a/rawread/Android.mk b/rawread/Android.mk
+new file mode 100644
+index 0000000..13dff2c
+--- /dev/null
++++ b/rawread/Android.mk
+@@ -0,0 +1,11 @@
++LOCAL_PATH:= $(call my-dir)
++include $(CLEAR_VARS)
++
++LOCAL_MODULE := rawread
++
++LOCAL_SRC_FILES := rawread.c
++LOCAL_CFLAGS := -O2
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
++LOCAL_MODULE_TAGS := optional
++
++include $(BUILD_EXECUTABLE)
+diff --git a/rawread/rawread.c b/rawread/rawread.c
+new file mode 100644
+index 0000000..6ab0f6c
+--- /dev/null
++++ b/rawread/rawread.c
+@@ -0,0 +1,85 @@
++#include <stdlib.h>
++#include <string.h>
++#include <stdio.h>
++#include <errno.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <sys/time.h>                // for gettimeofday()
++
++int main (int argc, char **argv) {
++  struct timeval t1, t2;
++  double elapsedTime;
++
++  if (argc != 5) {
++    printf("rawread v0.00 by S-trace (s-trace@list.ru)\n");
++    printf("usage: rawread source_partition start_sector sectors_count target_file\n");
++    return(1);
++  }
++
++  char *PARTITION=argv[1];
++  int start_sector=atoi(argv[2]);
++  int sectors_count=atoi(argv[3]);
++  char *OUTFILE=argv[4];
++
++  printf("Reading %d sectors starting from sector %d from %s to %s\n", sectors_count, start_sector, PARTITION, OUTFILE);
++  char *data=calloc(sectors_count,512), *current_pos;
++  char *cur_sector=malloc(512);
++  if (data == NULL){
++    printf("malloc failed: %s\n", strerror(errno));
++  }
++  printf("read start\n");
++  gettimeofday(&t1, NULL);
++  int fd=open(PARTITION, O_RDONLY);
++  if (fd < 0) {
++    printf("soruce partition open failed: %s\n", strerror(errno));
++    exit(1);
++  }
++  lseek(fd, start_sector*512, SEEK_SET);
++  int i;
++  current_pos=data;
++  for (i=0; i<sectors_count; i++) {
++    int readed=read(fd, cur_sector, 512);
++    if ( readed != 512) {
++      printf("read failed: %s (sector %d) - skipping\n", strerror(errno), start_sector+i);
++      current_pos+=512;
++    }
++    else {
++      printf("read success (sector %d)\n", start_sector+i);
++      memcpy (current_pos, cur_sector, 512);
++      current_pos+=512;
++    }
++  }
++  close(fd);
++  gettimeofday(&t2, NULL);
++  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
++  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
++  printf("read done: readed %d sectors in %f ms\n", sectors_count, elapsedTime);
++
++  current_pos=data;
++  fd=open(OUTFILE, O_WRONLY|O_CREAT, S_IRUSR & S_IWUSR & S_IRGRP & S_IROTH);
++  if (fd < 0) {
++    printf("target file open failed: %s\n", strerror(errno));
++    exit(1);
++  }
++  printf("write start\n");
++  gettimeofday(&t1, NULL);
++  for(i=0; i<sectors_count; i++) {
++    printf("writing sector %d\n", i);
++    if (write(fd, current_pos, 512) != 512) {
++      fprintf(stderr, "write failed: %s\n", strerror(errno));
++      exit(1);
++    } else {
++      current_pos+=512;
++    }
++  }
++  fsync(fd);
++  gettimeofday(&t2, NULL);
++  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
++  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
++  printf("%d sectors written in %f ms\n", sectors_count, elapsedTime);
++  free (data);
++  close(fd);
++  return 0;
++}
+-- 
+2.7.4
+

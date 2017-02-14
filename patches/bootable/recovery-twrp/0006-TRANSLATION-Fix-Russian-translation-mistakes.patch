@@ -1,0 +1,58 @@
+From f0427d1160a320ea800b1d0348c97141fa2837bc Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 28 Feb 2016 00:10:38 +0300
+Subject: [PATCH 6/6] [TRANSLATION] Fix Russian translation mistakes
+
+Change-Id: I0b509deee996ddb1d0083f8039289f3f551afb76
+---
+ gui/theme/common/languages/ru.xml | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/gui/theme/common/languages/ru.xml b/gui/theme/common/languages/ru.xml
+index f4c54d9..0a85838 100644
+--- a/gui/theme/common/languages/ru.xml
++++ b/gui/theme/common/languages/ru.xml
+@@ -52,7 +52,7 @@
+ 
+ 		<string name="install_btn">Установка</string>
+ 		<string name="wipe_btn">Очистка</string>
+-		<string name="backup_btn">Резервное коп-ние</string>
++		<string name="backup_btn">Рез. копирование</string>
+ 		<string name="restore_btn">Восстановление</string>
+ 		<string name="mount_btn">Монтирование</string>
+ 		<string name="settings_btn">Настройки</string>
+@@ -215,7 +215,7 @@
+ 		<string name="enc_disabled">выключено - установите пароль для включения</string>
+ 		<string name="enc_enabled">включено</string>
+ 		<string name="enable_backup_comp_chk">Использовать сжатие</string>
+-		<string name="skip_md5_backup_chk">Пропустить вычисление MD5</string>
++		<string name="skip_md5_backup_chk">Пропустить создание MD5</string>
+ 		<string name="disable_backup_space_chk">Отключить проверку свободного места</string>
+ 		<string name="current_boot_slot">Текущий слот: %tw_active_slot%</string>
+ 		<string name="boot_slot_a">Слот A</string>
+@@ -272,11 +272,11 @@
+ 		<string name="decrypt_data_btn">Расшифровать данные</string>
+ 		<string name="disable_mtp_btn">Выключить MTP</string>
+ 		<string name="enable_mtp_btn">Включить MTP</string>
+-		<string name="mount_usb_storage_btn">Включить UMS</string>
++		<string name="mount_usb_storage_btn">Режим USB-накопителя</string>
+ 		<string name="usb_storage_hdr">USB накопитель</string>
+ 		<string name="usb_stor_mnt1">Режим USB накопителя включен</string>
+ 		<string name="usb_stor_mnt2">Перед отключением вашего устройства от компьютера,</string>
+-		<string name="usb_stor_mnt3">выполните размонтирование (выключите UMS)!</string>
++		<string name="usb_stor_mnt3">выполните размонтирование (безопасное извлечение)!</string>
+ 		<string name="unmount_btn">Выключить UMS</string>
+ 		<string name="rb_system_btn">Система</string>
+ 		<string name="rb_poweroff_btn">Выключение</string>
+@@ -638,7 +638,7 @@
+ 		<string name="invalid_zip_format">Неверный формат zip файла!</string>
+ 		<string name="check_for_md5">Проверка MD5-файлов...</string>
+ 		<string name="fail_sysmap">Не удалось отобразить в память файл '{1}'</string>
+-		<string name="verify_zip_sig">Проверка подписи zip...</string>
++		<string name="verify_zip_sig">Проверка подписи Zip...</string>
+ 		<string name="verify_zip_fail">Подпись Zip не прошла проверку!</string>
+ 		<string name="verify_zip_done">Подпись Zip проверена успешно.</string>
+ 		<string name="zip_corrupt">Zip-файл поврежден!</string>
+-- 
+2.9.3
+
