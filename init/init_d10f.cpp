@@ -39,10 +39,10 @@
 #define USBMSC_PRESENT_PROPERTY_NAME "ro.usbmsc.present"
 #define USBMSC_PARTITION_PATH "/dev/block/platform/msm_sdcc.1/by-name/usbmsc"
 
-char *open_xml_configuration(off_t *size) {
+char *mmap_xml_configuration(off_t *size) {
 	FILE *xml_config_filestream = fopen(STORAGE_XML_PATH, "r+");
 	if (xml_config_filestream == NULL) {
-		ERROR("Unable to open storage configuration XML \"%s\" - storages may be inconsistent (errno: %d (%s))!\n",
+		ERROR("Unable to mmap storage configuration XML \"%s\" - storages may be inconsistent (errno: %d (%s))!\n",
 		      STORAGE_XML_PATH, errno, strerror(errno));
 		return NULL;
 	}
@@ -145,107 +145,25 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 	free (buffer);
 }
 
-// TODO: eliminate this!
 void vendor_load_properties(void)
 {
 	std::string value;
-
-	DIR * dir = opendir(PERSISTENT_PROPERTY_DIR);
-	int dir_fd;
-	struct dirent * entry;
-	int fd, length, isDatamedia=FALSE;
-	struct stat sb;
-
-	if (dir) {
-		dir_fd = dirfd(dir);
-		while ((entry = readdir(dir)) != NULL) {
-			// we need to read this properties before load_persistent_properties()
-			if (strncmp(PERSISTENT_PROPERTY_CONFIGURATION_NAME, entry->d_name, strlen(PERSISTENT_PROPERTY_CONFIGURATION_NAME)))
-				continue;
-#if HAVE_DIRENT_D_TYPE
-			if (entry->d_type != DT_REG)
-				continue;
-#endif
-			/* open the file and read the property value */
-			fd = openat(dir_fd, entry->d_name, O_RDONLY | O_NOFOLLOW);
-			if (fd < 0) {
-				ERROR("Unable to open persistent property file \"%s\" errno: %d\n", entry->d_name, errno);
-				continue;
-			}
-			if (fstat(fd, &sb) < 0) {
-				ERROR("fstat on property file \"%s\" failed errno: %d\n", entry->d_name, errno);
-				close(fd);
-				continue;
-			}
-
-			// File must not be accessible to others, be owned by root/root, and
-			// not be a hard link to any other file.
-			if (((sb.st_mode & (S_IRWXG | S_IRWXO)) != 0)
-				      || (sb.st_uid != 0)
-				      || (sb.st_gid != 0)
-				      || (sb.st_nlink != 1)) {
-				ERROR("skipping insecure property file %s (uid=%u gid=%u nlink=%d mode=%o)\n",
-				      entry->d_name, (unsigned int)sb.st_uid, (unsigned int)sb.st_gid,
-				      sb.st_nlink, sb.st_mode);
-				close(fd);
-				continue;
-			}
-                        char temp[PROP_VALUE_MAX];
-			length = read(fd, temp, sizeof(temp) - 1);
-			if (length >= 0) {
-				temp[length] = 0;
-				property_set(entry->d_name, temp);
-			} else {
-				ERROR("Unable to read persistent property file %s errno: %d\n", entry->d_name, errno);
-			}
-			value = temp;
-			close(fd);
-		}
-		closedir(dir);
-	} else {
-		ERROR("Unable to open persistent property directory %s errno: %d\n", PERSISTENT_PROPERTY_DIR, errno);
-	}
-
-	errno=0;
-
-        int usbmsc_present = FALSE;
-        if (access("/dev/block/platform/msm_sdcc.2/by-name/usbmsc", F_OK) == 0)
-            usbmsc_present = TRUE;
-        else if (access("/dev/block/platform/msm_sdcc.1/by-name/usbmsc", F_OK) == 0)
-            usbmsc_present = TRUE;
-        
-	if (usbmsc_present) {
-	    ERROR("usbmsc present\n");
-	    property_set(USBMSC_PRESENT_PROPERTY_NAME, "true");
-        } else {
-		ERROR("usbmsc NOT present\n");
-		property_set(USBMSC_PRESENT_PROPERTY_NAME, "false");
-		isDatamedia = TRUE;
-        }
-
+	int isDatamedia=FALSE;
 	value = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME);
-	if (value == STORAGES_CONFIGURATION_DATAMEDIA) {
-		// if datamedia
+	if (value == STORAGES_CONFIGURATION_DATAMEDIA) { // if datamedia
 		ERROR("Got datamedia storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
 		isDatamedia = TRUE;
-	} else if (value == STORAGES_CONFIGURATION_INVERTED) {
-		// if swapped
-		property_set("ro.vold.primary_physical", "1");
+	} else if (value == STORAGES_CONFIGURATION_INVERTED) { // if swapped
 		ERROR("Got inverted storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
-	} else {
-		// if classic (default case)
+		property_set("ro.vold.primary_physical", "1");
+	} else { // if classic
 		ERROR("Got classic storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
 		property_set("ro.vold.primary_physical", "1");
-		if (isDatamedia) {
-			value = STORAGES_CONFIGURATION_DATAMEDIA;
-			property_set(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value.c_str());
-			ERROR("No usbmsc partiton - overriding storage configuration to datamedia! (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
-		}
 	}
 
         off_t size;
-        char *xml_config=open_xml_configuration(&size);
-	if (xml_config != NULL) {
+        char *xml_config=mmap_xml_configuration(&size);
+	if (xml_config) {
 		update_xml_configuration(xml_config, size, isDatamedia);
 		munmap(xml_config, size);
 	}
