@@ -1,0 +1,62 @@
+From df14bc37c5b7a1d2d8cae1698a3daab81c072c5f Mon Sep 17 00:00:00 2001
+From: Adnan Begovic <adnan@cyngn.com>
+Date: Thu, 10 Mar 2016 09:58:20 -0800
+Subject: [PATCH 3/3] telephony: Move COLP definition to android settings.
+
+  Otherwise we pollute the bootclasspath with public cmsdk
+  symbols.
+
+  2) testBootClassPathIsClean(org.cyanogenmod.tests.versioning.unit.ClassPathTest)
+java.lang.AssertionError: Jar file /system/framework/telephony-common.jar should not have cyanogenmod.alarmclock.ClockContract$AlarmsColumns !
+
+Change-Id: I34dda84473633a1c56e0c9158baa946ceced15d4
+---
+ src/com/android/phone/MobileNetworkSettings.java | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/src/com/android/phone/MobileNetworkSettings.java b/src/com/android/phone/MobileNetworkSettings.java
+index 4209a0b..835aabc 100644
+--- a/src/com/android/phone/MobileNetworkSettings.java
++++ b/src/com/android/phone/MobileNetworkSettings.java
+@@ -51,6 +51,7 @@ import android.preference.Preference;
+ import android.preference.PreferenceActivity;
+ import android.preference.PreferenceScreen;
+ import android.preference.SwitchPreference;
++import android.provider.Settings;
+ import android.telephony.CarrierConfigManager;
+ import android.telephony.PhoneStateListener;
+ import android.telephony.SubscriptionInfo;
+@@ -65,8 +66,6 @@ import android.widget.TabHost.TabContentFactory;
+ import android.widget.TabHost.TabSpec;
+ import android.widget.TabHost;
+ 
+-import cyanogenmod.providers.CMSettings;
+-
+ /**
+  * "Mobile network settings" screen.  This preference screen lets you
+  * enable/disable mobile data, and control data roaming and other
+@@ -738,8 +737,8 @@ public class MobileNetworkSettings extends PreferenceActivity
+             ps.setEnabled(hasActiveSubscriptions);
+         }
+ 
+-        boolean COLPEnabled = CMSettings.System.getInt(getContentResolver(),
+-                    CMSettings.System.CONNECTED_LINE_IDENTIFICATION, 1) != 0;
++        boolean COLPEnabled = Settings.Global.getInt(getContentResolver(),
++                    Settings.Global.CONNECTED_LINE_IDENTIFICATION, 1) != 0;
+         mButtonCOLP.setChecked(COLPEnabled);
+     }
+ 
+@@ -894,8 +893,8 @@ public class MobileNetworkSettings extends PreferenceActivity
+             }
+             return true;
+         } else if (preference == mButtonCOLP) {
+-            CMSettings.System.putInt(getContentResolver(),
+-                    CMSettings.System.CONNECTED_LINE_IDENTIFICATION,
++            Settings.Global.putInt(getContentResolver(),
++                    Settings.Global.CONNECTED_LINE_IDENTIFICATION,
+                     mButtonCOLP.isChecked() ? 0 : 1);
+         }
+ 
+-- 
+2.9.3
+
