@@ -1,7 +1,7 @@
-From 7fbf0a534f522f2c2d27f2c7e8d7bb470da7f579 Mon Sep 17 00:00:00 2001
+From 3fb6177bcc3fcb54dd9b0be9ac74f1b8a833751a Mon Sep 17 00:00:00 2001
 From: remittor <remittor@gmail.com>
 Date: Thu, 30 Jul 2015 17:30:59 +0300
-Subject: [PATCH 2/4] [PROPS] Add hook functions to post_process_props.py
+Subject: [PATCH 2/2] Add hook functions to post_process_props.py
 
 Change-Id: I8e7604d169eaa69ddb0d29a578cb992bdf791ff9
 ---
@@ -11,18 +11,18 @@ Change-Id: I8e7604d169eaa69ddb0d29a578cb992bdf791ff9
  create mode 100644 tools/post_process_props_hook.py
 
 diff --git a/tools/post_process_props.py b/tools/post_process_props.py
-index aa67755..e04cf90 100755
+index 940dd9b..7da3561 100755
 --- a/tools/post_process_props.py
 +++ b/tools/post_process_props.py
 @@ -15,6 +15,7 @@
  # limitations under the License.
  
- import sys
+ import os, sys
 +from post_process_props_hook import *
  
- 
- def iteritems(obj):
-@@ -137,8 +138,10 @@ def main(argv):
+ # Usage: post_process_props.py file.prop [blacklist_key, ...]
+ # Blacklisted keys are removed from the property file, if present
+@@ -130,8 +131,10 @@ def main(argv):
  
    if filename.endswith("/build.prop"):
      mangle_build_prop(properties, extraargs)
@@ -35,7 +35,7 @@ index aa67755..e04cf90 100755
      sys.exit(1)
 diff --git a/tools/post_process_props_hook.py b/tools/post_process_props_hook.py
 new file mode 100644
-index 0000000..572acea
+index 0000000..95720cc
 --- /dev/null
 +++ b/tools/post_process_props_hook.py
 @@ -0,0 +1,44 @@

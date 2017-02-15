@@ -1,4 +1,4 @@
-From 34a446f788757410ac3bf588483eca9e92de19c0 Mon Sep 17 00:00:00 2001
+From 7a919d4edddfcf43f821c3c81a1637ac5c2df84b Mon Sep 17 00:00:00 2001
 From: Adnan Begovic <adnan@cyngn.com>
 Date: Thu, 10 Mar 2016 09:57:24 -0800
 Subject: [PATCH 2/2] telephony: Move COLP definition to android settings.
@@ -17,12 +17,12 @@ Change-Id: I993897480a30ca40e9adca19deb36b13b4243a97
  3 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/Android.mk b/Android.mk
-index 28bf417..53b1ee6 100644
+index b97dba3..717a7e8 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -27,7 +27,6 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src/java) \
  
- LOCAL_JAVA_LIBRARIES := voip-common ims-common
+ LOCAL_JAVA_LIBRARIES := voip-common ims-common telephony-ext
  LOCAL_STATIC_JAVA_LIBRARIES := ims-ext-common
 -LOCAL_STATIC_JAVA_LIBRARIES += org.cyanogenmod.platform.internal
  
@@ -42,7 +42,7 @@ index 1ed4210..eacaa11 100755
      private boolean mDesiredMute = false;    // false = mute off
  
 diff --git a/src/java/com/android/internal/telephony/GsmCdmaConnection.java b/src/java/com/android/internal/telephony/GsmCdmaConnection.java
-index b2009e7..d765854 100644
+index 3e17232..c905494 100644
 --- a/src/java/com/android/internal/telephony/GsmCdmaConnection.java
 +++ b/src/java/com/android/internal/telephony/GsmCdmaConnection.java
 @@ -24,6 +24,7 @@ import android.os.PersistableBundle;
@@ -62,7 +62,7 @@ index b2009e7..d765854 100644
  /**
   * {@hide}
   */
-@@ -644,8 +643,8 @@ public class GsmCdmaConnection extends Connection {
+@@ -780,8 +779,8 @@ public class GsmCdmaConnection extends Connection {
          mCnapNamePresentation = dc.namePresentation;
  
          boolean connectedLineIdentification =
