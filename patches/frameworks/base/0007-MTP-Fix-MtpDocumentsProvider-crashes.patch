@@ -1,0 +1,53 @@
+From 83440022434d913ffb66d5a6aebb975e8736b3e8 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Wed, 15 Feb 2017 13:01:54 +0300
+Subject: [PATCH 7/7] [MTP] Fix MtpDocumentsProvider crashes
+
+Fixes MTP-Host failures:
+02-15 12:34:36.769  7163  7163 E AndroidRuntime: FATAL EXCEPTION: main
+02-15 12:34:36.769  7163  7163 E AndroidRuntime: Process: com.android.mtp, PID: 7163
+02-15 12:34:36.769  7163  7163 E AndroidRuntime: java.lang.RuntimeException: Unable to get provider com.android.mtp.MtpDocumentsProvider: java.lang.IllegalStateException: command '10 appfuse mount 10009 7163 MtpDocumentsProvider' failed with '400 10 Command failed'
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.installProvider(ActivityThread.java:5863)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.installContentProviders(ActivityThread.java:5452)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.handleBindApplication(ActivityThread.java:5391)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.-wrap2(ActivityThread.java)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1545)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:102)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:154)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:6126)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:886)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:776)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime: Caused by: java.lang.IllegalStateException: command '10 appfuse mount 10009 7163 MtpDocumentsProvider' failed with '400 10 Command failed'
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.Parcel.readException(Parcel.java:1692)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.Parcel.readException(Parcel.java:1637)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.storage.IMountService$Stub$Proxy.mountAppFuse(IMountService.java:1386)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.os.storage.StorageManager.mountAppFuse(StorageManager.java:1286)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at com.android.mtp.AppFuse.mount(AppFuse.java:69)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at com.android.mtp.MtpDocumentsProvider.onCreate(MtpDocumentsProvider.java:136)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.content.ContentProvider.attachInfo(ContentProvider.java:1751)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.content.ContentProvider.attachInfo(ContentProvider.java:1726)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.provider.DocumentsProvider.attachInfo(DocumentsProvider.java:177)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        at android.app.ActivityThread.installProvider(ActivityThread.java:5860)
+02-15 12:34:36.769  7163  7163 E AndroidRuntime:        ... 10 more
+---
+ .../MtpDocumentsProvider/src/com/android/mtp/MtpDocumentsProvider.java | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/packages/MtpDocumentsProvider/src/com/android/mtp/MtpDocumentsProvider.java b/packages/MtpDocumentsProvider/src/com/android/mtp/MtpDocumentsProvider.java
+index 1823711..c234765 100644
+--- a/packages/MtpDocumentsProvider/src/com/android/mtp/MtpDocumentsProvider.java
++++ b/packages/MtpDocumentsProvider/src/com/android/mtp/MtpDocumentsProvider.java
+@@ -137,6 +137,9 @@ public class MtpDocumentsProvider extends DocumentsProvider {
+         } catch (IOException error) {
+             Log.e(TAG, "Failed to start app fuse.", error);
+             return false;
++        } catch (IllegalStateException error) {
++            Log.e(TAG, "Failed to start app fuse.", error);
++            return false;
+         }
+ 
+         resume();
+-- 
+2.9.3
+
