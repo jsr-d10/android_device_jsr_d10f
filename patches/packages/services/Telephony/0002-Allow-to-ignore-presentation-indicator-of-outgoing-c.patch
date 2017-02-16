@@ -1,7 +1,7 @@
-From d321d81ea8c5355ab53cd9aa5f462bf4b1051cf9 Mon Sep 17 00:00:00 2001
+From 5e7d9c9e55fa6ac8a57f35ab38c0dbe45be4d19e Mon Sep 17 00:00:00 2001
 From: Gabriele M <moto.falcon.git@gmail.com>
 Date: Thu, 3 Mar 2016 21:14:37 +0100
-Subject: [PATCH 2/2] Allow to ignore presentation indicator of outgoing calls
+Subject: [PATCH 2/3] Allow to ignore presentation indicator of outgoing calls
  [3/3]
 
 With some mobile network operators, the presentation indicator of
@@ -12,26 +12,24 @@ calls to never hide the dialed numbers.
 
 Change-Id: I8848d6ac992e597584a0c04dcc925ed4e91c5a35
 ---
- AndroidManifest.xml                              |  3 ++-
+ AndroidManifest.xml                              |  1 +
  res/values/cm_strings.xml                        |  4 ++++
  res/xml/network_setting.xml                      |  5 +++++
  src/com/android/phone/MobileNetworkSettings.java | 19 +++++++++++++++++++
- 4 files changed, 30 insertions(+), 1 deletion(-)
+ 4 files changed, 29 insertions(+)
 
 diff --git a/AndroidManifest.xml b/AndroidManifest.xml
-index 1c37a0a..9867fa6 100644
+index 1c37a0a..dcef54b 100644
 --- a/AndroidManifest.xml
 +++ b/AndroidManifest.xml
-@@ -152,7 +152,8 @@
+@@ -152,6 +152,7 @@
      <uses-permission android:name="android.permission.READ_BLOCKED_NUMBERS" />
      <!-- Needed for emergency contact notification. -->
      <uses-permission android:name="android.permission.WRITE_BLOCKED_NUMBERS" />
--
 +    <uses-permission android:name="cyanogenmod.permission.WRITE_SETTINGS" />
-+
+ 
      <!-- This tells the activity manager to not delay any of our activity
           start requests, even if they happen immediately after the user
-          presses home. -->
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
 index 32d447f..69fbab5 100644
 --- a/res/values/cm_strings.xml
