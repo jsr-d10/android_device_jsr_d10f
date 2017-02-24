@@ -10,16 +10,16 @@
     <string name="filename_base">%s</string>
 
     <!-- URL base to find .delta files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
-    <string name="url_base_delta">http://www.myac.msk.ru/ota/d10f/cm13/testing/delta/</string>
+    <string name="url_base_delta">http://www.myac.msk.ru/ota/d10f/lineage13.0/delta/</string>
 
     <!-- URL base to find .update and .sign files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
-    <string name="url_base_update">http://www.myac.msk.ru/ota/d10f/cm13/testing/delta/</string>
+    <string name="url_base_update">http://www.myac.msk.ru/ota/d10f/lineage13.0/delta/</string>
 
     <!-- URL base to find the full zip files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
-    <string name="url_base_full">http://www.myac.msk.ru/ota/d10f/cm13/testing/full/</string>
+    <string name="url_base_full">http://www.myac.msk.ru/ota/d10f/lineage13.0/full/</string>
 
     <!-- URL base to fetch all builds -->
-    <string name="url_base_json">http://www.myac.msk.ru/ota/d10f/cm13/testing/builds.json"</string>
+    <string name="url_base_json">http://www.myac.msk.ru/ota/d10f/lineage13.0/builds.json"</string>
 
     <!-- Applies whole-file signature delta. Adds one extra delta step. Required if recovery verifies signatures -->
     <item type="bool" name="apply_signature">true</item>
