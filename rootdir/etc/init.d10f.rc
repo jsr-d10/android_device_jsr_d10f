@@ -62,7 +62,9 @@ on init
     symlink /storage/usbdisk /usbdisk
 
 on fs
-    mount_all fstab.d10f
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular generate
+    mount_all /fstab.d10f
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular update
     restorecon_recursive /persist
 
     # Activate ZRAM
