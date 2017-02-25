@@ -116,6 +116,10 @@ PRODUCT_PACKAGES += \
     FMRadio \
     libfmjni
 
+# Fstab generator
+PRODUCT_PACKAGES += \
+    fstab
+
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8226
