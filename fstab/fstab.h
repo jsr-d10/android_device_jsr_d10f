@@ -29,7 +29,7 @@
 
 // From system/core/init/util.h
 #define COLDBOOT_DONE "/dev/.coldboot_done"
-#define ERROR(x...)   init_klog_write(KLOG_ERROR_LEVEL, x)
+
 enum fstab_types
 {
     FSTAB_TYPE_REGULAR = 0,
