@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cutils/android_reboot.h>
 #include <cutils/properties.h>
+#include <cutils/android_reboot.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
