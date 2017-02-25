@@ -106,6 +106,10 @@ PRODUCT_PACKAGES += \
     libqcomfm_jni \
     qcom.fmradio
 
+# Fstab generator
+PRODUCT_PACKAGES += \
+    fstab
+
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8226
