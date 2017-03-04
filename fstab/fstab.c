@@ -256,7 +256,7 @@ static int add_fstab_entry(
         return -1;
     }
 
-    int partition_number = get_partition_number(part_name);
+    int partition_number = get_partition_number(full_part_name);
     char fs_mgr_flags_fixed[PROP_VALUE_MAX] = {0};
     snprintf(fs_mgr_flags_fixed, PROP_VALUE_MAX, fs_mgr_flags, partition_number);
 
