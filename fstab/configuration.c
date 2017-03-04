@@ -1,12 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-
-// #include "vendor_init.h"
-#include "property_service.h"
 #include "log.h"
-#include "init.h"
-#include "util.h"
-#include "init.h"
+#include "configuration.h"
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -15,8 +10,10 @@
 #include <sys/mount.h>
 #include <sys/statvfs.h>
 #include <sys/mman.h>
-#include "service.h"
+#include <cutils/properties.h>
+#include <string.h>
 
+#include <sys/stat.h>
 #define FALSE 0
 #define TRUE 1
 
@@ -145,19 +142,36 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 	free (buffer);
 }
 
-void vendor_load_properties(void)
+void set_storage_props(void)
 {
-	std::string value;
-	int isDatamedia=FALSE;
-	value = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME);
-	if (value == STORAGES_CONFIGURATION_DATAMEDIA) { // if datamedia
-		ERROR("Got datamedia storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
+        int usbmsc_present = FALSE;
+	char value[PROP_VALUE_MAX+1];
+	int isDatamedia = FALSE;
+	int rc = 0;
+        if (access("/dev/block/platform/msm_sdcc.2/by-name/usbmsc", F_OK) == 0)
+            usbmsc_present = TRUE;
+        else if (access("/dev/block/platform/msm_sdcc.1/by-name/usbmsc", F_OK) == 0)
+            usbmsc_present = TRUE;
+        
+	if (usbmsc_present) {
+	    ERROR("usbmsc present\n");
+	    property_set(USBMSC_PRESENT_PROPERTY_NAME, "true");
+        } else {
+		ERROR("usbmsc NOT present\n");
+		property_set(USBMSC_PRESENT_PROPERTY_NAME, "false");
 		isDatamedia = TRUE;
-	} else if (value == STORAGES_CONFIGURATION_INVERTED) { // if swapped
-		ERROR("Got inverted storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
+        }
+
+	rc = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value, "");
+	if (rc && !strcmp(value, STORAGES_CONFIGURATION_DATAMEDIA)) {
+		// if datamedia
+		ERROR("Got datamedia storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
+		isDatamedia = TRUE;
+	} else if (rc && !strcmp(value, STORAGES_CONFIGURATION_INVERTED)) {
+		// if swapped
 		property_set("ro.vold.primary_physical", "1");
 	} else { // if classic
-		ERROR("Got classic storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value.c_str());
+		ERROR("Got classic storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
 		property_set("ro.vold.primary_physical", "1");
 	}
 

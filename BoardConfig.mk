@@ -93,10 +93,6 @@ BOARD_HARDWARE_CLASS := $(LOCAL_PATH)/cmhw/
 # Headers
 TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 
-# Init
-TARGET_INIT_VENDOR_LIB := libinit_d10f
-TARGET_RECOVERY_DEVICE_MODULES := libinit_d10f
-
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/jsr/msm8226
 TARGET_KERNEL_CONFIG := jsr_d10f_defconfig
