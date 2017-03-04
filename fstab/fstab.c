@@ -464,8 +464,6 @@ static int update_twrp_fstab(int fd, int type, int storage_config, int sdcc_conf
                     else
                         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/dev/block/mmcblk1p1 /dev/block/mmcblk1", "/external_sd", "vfat", "flags=display=\"SD card\";storagename=\"SD card\";storage;wipeingui;removable;fsflags=utf8", "");
                     break;
-                    ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/dev/block/mmcblk1p1 /dev/block/mmcblk1", "/external_sd", "vfat", "flags=display=\"SD card\";storagename=\"SD card\";storage;wipeingui;removable;fsflags=utf8", "");
-                    break;
                 case ISOLATED:
                     ret += add_fstab_entry(fd, type, SDCC_1, "usbmsc", "/external_sd", "vfat", "flags=display=\"SD card\";storagename=\"SD card\";storage;wipeingui;removable;fsflags=utf8,settingsstorage", "");
                     break;
@@ -628,13 +626,12 @@ int process_fstab(const char *fstab_name, const int fstab_type, const int fstab_
 
 int main(int nargs, char **args)
 {
-    const char *fstab_name = NULL;
     int fstab_type     = FSTAB_TYPE_REGULAR;
     int fstab_action   = FSTAB_ACTION_GENERATE;
     int ret = FALSE;
     ERROR("%s: entered with name=%s type=%s action=%s\n", __func__, args[1], args[2], args[3]);
     if (nargs == 4 && args[1] && args[2] && args[3]) {
-        fstab_name = args[1];
+        const char *fstab_name = args[1];
         if (!strncmp(args[2],"regular", sizeof("regular")))
             fstab_type = FSTAB_TYPE_REGULAR;
         if (!strncmp(args[2],"recovery", sizeof("recovery")))
