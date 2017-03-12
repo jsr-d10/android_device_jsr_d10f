@@ -4,7 +4,6 @@ on charger
 on fs
     exec u:object_r:init_exec:s0 root root -- /sbin/fstab /etc/recovery.fstab twrp generate
     exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.recovery.d10f recovery generate
-    mount_all /fstab.recovery.d10f
     exec u:object_r:init_exec:s0 root root -- /sbin/fstab /etc/recovery.fstab twrp update
     exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.recovery.d10f recovery update
 
