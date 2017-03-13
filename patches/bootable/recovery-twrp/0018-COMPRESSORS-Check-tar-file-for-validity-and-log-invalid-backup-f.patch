@@ -1,0 +1,47 @@
+From c6564ce01a3bf8135f58d817dca59b791c17b2bb Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 13 Mar 2017 21:28:08 +0300
+Subject: [PATCH 18/20] [COMPRESSORS] Check tar file for validity and log invalid backup file
+
+---
+ twrp-functions.cpp | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/twrp-functions.cpp b/twrp-functions.cpp
+index 836cdec..71f304a 100644
+--- a/twrp-functions.cpp
++++ b/twrp-functions.cpp
+@@ -189,12 +189,18 @@ bool TWFunc::Path_Exists(string Path) {
+ Archive_Type TWFunc::Get_File_Type(string fn) {
+ 	string::size_type i = 0;
+ 	int firstbyte = 0, secondbyte = 0, thirdbyte = 0, fourthbyte = 0;
+-	char header[3];
++	char header[263] = { 0 };
+ 
+ 	ifstream f;
+ 	f.open(fn.c_str(), ios::in | ios::binary);
+-	f.get(header, 3);
++	f.get(header, 262);
+ 	f.close();
++
++	if (strncmp(&header[257], "ustar", 5) == 0) {
++		LOGINFO("File '%s' is uncompressed (tar format).\n", fn.c_str());
++		return UNCOMPRESSED; // Tar
++	}
++
+ 	firstbyte = header[i] & 0xff;
+ 	secondbyte = header[++i] & 0xff;
+ 	thirdbyte = header[++i] & 0xff;
+@@ -223,7 +229,8 @@ Archive_Type TWFunc::Get_File_Type(string fn) {
+ 		LOGINFO("File '%s' is encrypted.\n", fn.c_str());
+ 		return ENCRYPTED; // Encrypted
+ 	}
+-	return UNCOMPRESSED; // default
++	LOGINFO("File '%s' looks bad or compressed by unknown compressor.\n", fn.c_str());
++	return UNCOMPRESSED; // Hope for the best
+ }
+ 
+ int TWFunc::Try_Decrypting_File(string fn, string password) {
+-- 
+2.10.2
+

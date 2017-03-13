@@ -1,0 +1,354 @@
+From 3cb2cbac24bd2ae838324a3347f32d5fae31502f Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 13 Mar 2017 20:36:45 +0300
+Subject: [PATCH 11/20] [COMPRESSORS] Add support for Zstandart compressor
+
+---
+ Android.mk                     |  3 ++-
+ gui/theme/common/landscape.xml | 19 ++++++++++++++
+ gui/theme/common/portrait.xml  | 19 ++++++++++++++
+ gui/theme/common/watch.xml     | 19 ++++++++++++++
+ prebuilt/Android.mk            |  1 +
+ twrp-functions.cpp             | 37 ++++++++++++++++++++-------
+ twrp-functions.hpp             |  4 +--
+ twrpTar.cpp                    | 57 ++++++++++++++++++++++++++++++++++++++++++
+ zstd/Android.mk                | 50 ++++++++++++++++++++++++++++++++++++
+ 9 files changed, 197 insertions(+), 12 deletions(-)
+ create mode 100644 zstd/Android.mk
+
+diff --git a/Android.mk b/Android.mk
+index 569692c..1600d05 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -464,7 +464,7 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
+     endif
+ endif
+ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
+-    LOCAL_ADDITIONAL_DEPENDENCIES += uunpack
++    LOCAL_ADDITIONAL_DEPENDENCIES += uunpack zstd
+ endif
+ # Allow devices to specify device-specific recovery dependencies
+ ifneq ($(TARGET_RECOVERY_DEVICE_MODULES),)
+@@ -729,6 +729,7 @@ ifneq ($(TW_OEM_BUILD),true)
+ endif
+ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
+     include $(commands_recovery_local_path)/uunpack/Android.mk
++    include $(commands_recovery_local_path)/zstd/Android.mk
+ endif
+ 
+ # FB2PNG
+diff --git a/gui/theme/common/landscape.xml b/gui/theme/common/landscape.xml
+index a820c4e..11a75d4 100644
+--- a/gui/theme/common/landscape.xml
++++ b/gui/theme/common/landscape.xml
+@@ -1763,6 +1763,25 @@
+ 				<listitem name="pigz -7">pigz -7</listitem>
+ 				<listitem name="pigz -8">pigz -8</listitem>
+ 				<listitem name="pigz -9">pigz -9</listitem>
++				<listitem name="zstd -1">zstd -1</listitem>
++				<listitem name="zstd -2">zstd -2</listitem>
++				<listitem name="zstd -3">zstd -3</listitem>
++				<listitem name="zstd -4">zstd -4</listitem>
++				<listitem name="zstd -5">zstd -5</listitem>
++				<listitem name="zstd -6">zstd -6</listitem>
++				<listitem name="zstd -7">zstd -7</listitem>
++				<listitem name="zstd -8">zstd -8</listitem>
++				<listitem name="zstd -9">zstd -9</listitem>
++				<listitem name="zstd -10">zstd -10</listitem>
++				<listitem name="zstd -11">zstd -11</listitem>
++				<listitem name="zstd -12">zstd -12</listitem>
++				<listitem name="zstd -13">zstd -13</listitem>
++				<listitem name="zstd -14">zstd -14</listitem>
++				<listitem name="zstd -15">zstd -15</listitem>
++				<listitem name="zstd -16">zstd -16</listitem>
++				<listitem name="zstd -17">zstd -17</listitem>
++				<listitem name="zstd -18">zstd -18</listitem>
++				<listitem name="zstd -19">zstd -19</listitem>
+ 			</listbox>
+ 
+ 			<button style="main_button">
+diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
+index adc7e25..53f8e2b 100644
+--- a/gui/theme/common/portrait.xml
++++ b/gui/theme/common/portrait.xml
+@@ -1808,6 +1808,25 @@
+ 				<listitem name="pigz -7">pigz -7</listitem>
+ 				<listitem name="pigz -8">pigz -8</listitem>
+ 				<listitem name="pigz -9">pigz -9</listitem>
++				<listitem name="zstd -1">zstd -1</listitem>
++				<listitem name="zstd -2">zstd -2</listitem>
++				<listitem name="zstd -3">zstd -3</listitem>
++				<listitem name="zstd -4">zstd -4</listitem>
++				<listitem name="zstd -5">zstd -5</listitem>
++				<listitem name="zstd -6">zstd -6</listitem>
++				<listitem name="zstd -7">zstd -7</listitem>
++				<listitem name="zstd -8">zstd -8</listitem>
++				<listitem name="zstd -9">zstd -9</listitem>
++				<listitem name="zstd -10">zstd -10</listitem>
++				<listitem name="zstd -11">zstd -11</listitem>
++				<listitem name="zstd -12">zstd -12</listitem>
++				<listitem name="zstd -13">zstd -13</listitem>
++				<listitem name="zstd -14">zstd -14</listitem>
++				<listitem name="zstd -15">zstd -15</listitem>
++				<listitem name="zstd -16">zstd -16</listitem>
++				<listitem name="zstd -17">zstd -17</listitem>
++				<listitem name="zstd -18">zstd -18</listitem>
++				<listitem name="zstd -19">zstd -19</listitem>
+ 				<data name="tw_compressor_guisel" />
+ 			</listbox>
+ 
+diff --git a/gui/theme/common/watch.xml b/gui/theme/common/watch.xml
+index 89f9f97..2e4c691 100644
+--- a/gui/theme/common/watch.xml
++++ b/gui/theme/common/watch.xml
+@@ -2140,6 +2140,25 @@
+ 				<listitem name="pigz -7">pigz -7</listitem>
+ 				<listitem name="pigz -8">pigz -8</listitem>
+ 				<listitem name="pigz -9">pigz -9</listitem>
++				<listitem name="zstd -1">zstd -1</listitem>
++				<listitem name="zstd -2">zstd -2</listitem>
++				<listitem name="zstd -3">zstd -3</listitem>
++				<listitem name="zstd -4">zstd -4</listitem>
++				<listitem name="zstd -5">zstd -5</listitem>
++				<listitem name="zstd -6">zstd -6</listitem>
++				<listitem name="zstd -7">zstd -7</listitem>
++				<listitem name="zstd -8">zstd -8</listitem>
++				<listitem name="zstd -9">zstd -9</listitem>
++				<listitem name="zstd -10">zstd -10</listitem>
++				<listitem name="zstd -11">zstd -11</listitem>
++				<listitem name="zstd -12">zstd -12</listitem>
++				<listitem name="zstd -13">zstd -13</listitem>
++				<listitem name="zstd -14">zstd -14</listitem>
++				<listitem name="zstd -15">zstd -15</listitem>
++				<listitem name="zstd -16">zstd -16</listitem>
++				<listitem name="zstd -17">zstd -17</listitem>
++				<listitem name="zstd -18">zstd -18</listitem>
++				<listitem name="zstd -19">zstd -19</listitem>
+ 			</listbox>
+ 
+ 			<button>
+diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
+index d56fadf..e8f0f52 100644
+--- a/prebuilt/Android.mk
++++ b/prebuilt/Android.mk
+@@ -31,6 +31,7 @@ else
+ 	endif
+ endif
+ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
++	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/zstd
+ 	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/uunpack
+ endif
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/pigz
+diff --git a/twrp-functions.cpp b/twrp-functions.cpp
+index c964357..ae18cbf 100644
+--- a/twrp-functions.cpp
++++ b/twrp-functions.cpp
+@@ -188,7 +188,7 @@ bool TWFunc::Path_Exists(string Path) {
+ 
+ Archive_Type TWFunc::Get_File_Type(string fn) {
+ 	string::size_type i = 0;
+-	int firstbyte = 0, secondbyte = 0;
++	int firstbyte = 0, secondbyte = 0, thirdbyte = 0, fourthbyte = 0;
+ 	char header[3];
+ 
+ 	ifstream f;
+@@ -197,11 +197,20 @@ Archive_Type TWFunc::Get_File_Type(string fn) {
+ 	f.close();
+ 	firstbyte = header[i] & 0xff;
+ 	secondbyte = header[++i] & 0xff;
+-
+-	if (firstbyte == 0x1f && secondbyte == 0x8b)
+-		return COMPRESSED;
+-	else if (firstbyte == 0x4f && secondbyte == 0x41)
+-		return ENCRYPTED;
++	thirdbyte = header[++i] & 0xff;
++	fourthbyte = header[++i] & 0xff;
++	if (firstbyte == 0x1f && secondbyte == 0x8b) {
++		LOGINFO("File '%s' is compressed by gzip/pigz.\n", fn.c_str());
++		return COMPRESSED; // Compressed by gzip/pigz
++	}
++	else if (secondbyte == 0xb5 && thirdbyte == 0x2f && fourthbyte == 0xfd) {
++		LOGINFO("File '%s' is compressed by zstd.\n", fn.c_str());
++		return COMPRESSED; // Compressed by zstd
++	}
++	else if (firstbyte == 0x4f && secondbyte == 0x41) {
++		LOGINFO("File '%s' is encrypted.\n", fn.c_str());
++		return ENCRYPTED; // Encrypted
++	}
+ 	return UNCOMPRESSED; // default
+ }
+ 
+@@ -214,7 +223,7 @@ int TWFunc::Try_Decrypting_File(string fn, string password) {
+ 	uint8_t *buffer_out = NULL;
+ 	uint8_t *ptr = NULL;
+ 	size_t read_len = 0, out_len = 0;
+-	int firstbyte = 0, secondbyte = 0;
++	int firstbyte = 0, secondbyte = 0, thirdbyte = 0, fourthbyte = 0;
+ 	size_t _j = 0;
+ 	size_t _key_data_len = 0;
+ 
+@@ -282,10 +291,20 @@ int TWFunc::Try_Decrypting_File(string fn, string password) {
+ 	firstbyte = *ptr & 0xff;
+ 	ptr++;
+ 	secondbyte = *ptr & 0xff;
++	ptr++;
++	thirdbyte = *ptr & 0xff;
++	ptr++;
++	fourthbyte = *ptr & 0xff;
++
+ 	if (firstbyte == 0x1f && secondbyte == 0x8b) {
+-		LOGINFO("Successfully decrypted '%s' and file is compressed.\n", fn.c_str());
++		LOGINFO("Successfully decrypted '%s' and file is compressed by gzip/pigz.\n", fn.c_str());
++		free(buffer_out);
++		return 3; // Compressed by gzip/pigz+encrypted
++	}
++	else if (secondbyte == 0xb5 && thirdbyte == 0x2f && fourthbyte == 0xfd) {
++		LOGINFO("Successfully decrypted '%s' and file is compressed by zstd.\n", fn.c_str());
+ 		free(buffer_out);
+-		return 3; // Compressed
++		return 3; // Compressed by zstd+encrypted
+ 	}
+ 	if (out_len >= 262) {
+ 		ptr = buffer_out + 257;
+diff --git a/twrp-functions.hpp b/twrp-functions.hpp
+index 82a4c1b..f0cc166 100644
+--- a/twrp-functions.hpp
++++ b/twrp-functions.hpp
+@@ -54,8 +54,8 @@ public:
+ 	static int Wait_For_Child(pid_t pid, int *status, string Child_Name);       // Waits for pid to exit and checks exit status
+ 	static int Wait_For_Child_Timeout(pid_t pid, int *status, const string& Child_Name, int timeout); // Waits for a pid to exit until the timeout is hit. If timeout is hit, kill the chilld.
+ 	static bool Path_Exists(string Path);                                       // Returns true if the path exists
+-	static Archive_Type Get_File_Type(string fn);                               // Determines file type, 0 for unknown, 1 for gzip, 2 for OAES encrypted
+-	static int Try_Decrypting_File(string fn, string password); // -1 for some error, 0 for failed to decrypt, 1 for decrypted, 3 for decrypted and found gzip format
++	static Archive_Type Get_File_Type(string fn);                               // Determines file type, 0 for unknown, 1 for compressed, 2 for OAES encrypted
++	static int Try_Decrypting_File(string fn, string password);                 // -1 for some error, 0 for failed to decrypt, 1 for decrypted, 3 for decrypted and found compressed format
+ 	static unsigned long Get_File_Size(const string& Path);                            // Returns the size of a file
+ 	static std::string Remove_Trailing_Slashes(const std::string& path, bool leaveLast = false); // Normalizes the path, e.g /data//media/ -> /data/media
+ 	static void Strip_Quotes(char* &str);                                       // Remove leading & trailing double-quotes from a string
+diff --git a/twrpTar.cpp b/twrpTar.cpp
+index 87574b5..b731d56 100644
+--- a/twrpTar.cpp
++++ b/twrpTar.cpp
+@@ -931,6 +931,63 @@ int twrpTar::execlpCompressor() {
+ 	if (compression_mode == "pigz -9")
+ 		ret=execlp("pigz", "pigz", "-9", "-", NULL);
+ 
++	if (compression_mode == "zstd -1")
++		ret=execlp("zstd", "zstd", "-1", "-", NULL);
++
++	if (compression_mode == "zstd -2")
++		ret=execlp("zstd", "zstd", "-2", "-", NULL);
++
++	if (compression_mode == "zstd -3")
++		ret=execlp("zstd", "zstd", "-3", "-", NULL);
++
++	if (compression_mode == "zstd -4")
++		ret=execlp("zstd", "zstd", "-4", "-", NULL);
++
++	if (compression_mode == "zstd -5")
++		ret=execlp("zstd", "zstd", "-5", "-", NULL);
++
++	if (compression_mode == "zstd -6")
++		ret=execlp("zstd", "zstd", "-6", "-", NULL);
++
++	if (compression_mode == "zstd -7")
++		ret=execlp("zstd", "zstd", "-7", "-", NULL);
++
++	if (compression_mode == "zstd -8")
++		ret=execlp("zstd", "zstd", "-8", "-", NULL);
++
++	if (compression_mode == "zstd -9")
++		ret=execlp("zstd", "zstd", "-9", "-", NULL);
++
++	if (compression_mode == "zstd -10")
++		ret=execlp("zstd", "zstd", "-10", "-", NULL);
++
++	if (compression_mode == "zstd -11")
++		ret=execlp("zstd", "zstd", "-11", "-", NULL);
++
++	if (compression_mode == "zstd -12")
++		ret=execlp("zstd", "zstd", "-12", "-", NULL);
++
++	if (compression_mode == "zstd -13")
++		ret=execlp("zstd", "zstd", "-13", "-", NULL);
++
++	if (compression_mode == "zstd -14")
++		ret=execlp("zstd", "zstd", "-14", "-", NULL);
++
++	if (compression_mode == "zstd -15")
++		ret=execlp("zstd", "zstd", "-15", "-", NULL);
++
++	if (compression_mode == "zstd -16")
++		ret=execlp("zstd", "zstd", "-16", "-", NULL);
++
++	if (compression_mode == "zstd -17")
++		ret=execlp("zstd", "zstd", "-17", "-", NULL);
++
++	if (compression_mode == "zstd -18")
++		ret=execlp("zstd", "zstd", "-18", "-", NULL);
++
++	if (compression_mode == "zstd -19")
++		ret=execlp("zstd", "zstd", "-19", "-", NULL);
++
+ 	LOGERR("%s: '%s' ERROR (%s)!\n", __func__, compression_mode.c_str(), strerror(errno)); // Should not reach here
+ 	return ret;
+ }
+diff --git a/zstd/Android.mk b/zstd/Android.mk
+new file mode 100644
+index 0000000..e42c4a7
+--- /dev/null
++++ b/zstd/Android.mk
+@@ -0,0 +1,50 @@
++LOCAL_PATH := $(call my-dir)
++
++include $(CLEAR_VARS)
++
++LOCAL_MODULE := zstd
++LOCAL_MODULE_TAGS := eng optional
++LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
++LOCAL_CFLAGS := -O3 -std=c99 -Wall -Wextra -Wundef -Wshadow -Wcast-align -Wstrict-prototypes -DZSTD_VERSION='"r1"'
++LOCAL_SRC_FILES = \
++    lib/common/fse_decompress.c \
++    lib/common/entropy_common.c \
++    lib/common/pool.c \
++    lib/common/error_private.c \
++    lib/common/xxhash.c \
++    lib/common/threading.c \
++    lib/common/zstd_common.c \
++    lib/compress/huf_compress.c \
++    lib/compress/zstdmt_compress.c \
++    lib/compress/zstd_compress.c \
++    lib/compress/fse_compress.c \
++    lib/decompress/huf_decompress.c \
++    lib/decompress/zstd_decompress.c \
++    lib/dictBuilder/divsufsort.c \
++    lib/dictBuilder/zdict.c \
++    lib/dictBuilder/cover.c \
++    lib/deprecated/zbuff_compress.c \
++    lib/deprecated/zbuff_common.c \
++    lib/deprecated/zbuff_decompress.c \
++    lib/legacy/zstd_v03.c \
++    lib/legacy/zstd_v07.c \
++    lib/legacy/zstd_v05.c \
++    lib/legacy/zstd_v04.c \
++    lib/legacy/zstd_v01.c \
++    lib/legacy/zstd_v06.c \
++    lib/legacy/zstd_v02.c \
++    programs/zstdcli.c \
++    programs/fileio.c \
++    programs/bench.c \
++    programs/datagen.c \
++    programs/dibio.c
++
++LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib
++LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib/legacy
++LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib/compress
++LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib/dictBuilder
++LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib/common
++# LOCAL_SHARED_LIBRARIES += libz libc
++
++include $(BUILD_EXECUTABLE)
+-- 
+2.10.2
+

@@ -1,0 +1,568 @@
+From 16e275e506c85afe06096241c71c50c5f122c53d Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 13 Mar 2017 19:17:51 +0300
+Subject: [PATCH 08/20] [COMPRESSORS] Allow user to fine tune pigz compression level
+
+---
+ Android.mk                        |  3 ++
+ data.cpp                          | 10 +++++
+ gui/action.cpp                    |  9 +++++
+ gui/objects.hpp                   |  1 +
+ gui/theme/common/landscape.xml    | 62 ++++++++++++++++++++++++++++++
+ gui/theme/common/languages/en.xml |  4 ++
+ gui/theme/common/languages/ru.xml |  4 ++
+ gui/theme/common/portrait.xml     | 59 ++++++++++++++++++++++++++++
+ gui/theme/common/watch.xml        | 81 +++++++++++++++++++++++++++++++++++++++
+ gui/theme/landscape_hdpi/ui.xml   |  1 +
+ gui/theme/landscape_mdpi/ui.xml   |  1 +
+ gui/theme/portrait_hdpi/ui.xml    |  1 +
+ gui/theme/portrait_mdpi/ui.xml    |  1 +
+ gui/theme/watch_mdpi/ui.xml       |  1 +
+ twrpTar.cpp                       | 51 +++++++++++++++++++++++-
+ twrpTar.hpp                       |  3 ++
+ variables.h                       |  1 +
+ 17 files changed, 292 insertions(+), 1 deletion(-)
+
+diff --git a/Android.mk b/Android.mk
+index fad1f6d..b5f6d87 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -357,6 +357,9 @@ ifneq ($(TW_DEFAULT_LANGUAGE),)
+ else
+     LOCAL_CFLAGS += -DTW_DEFAULT_LANGUAGE=en
+ endif
++ifeq ($(TW_NO_ADVANCED_COMPRESSION), true)
++    LOCAL_CFLAGS += -DTW_NO_ADVANCED_COMPRESSION
++endif
+ 
+ LOCAL_ADDITIONAL_DEPENDENCIES += \
+     dump_image \
+diff --git a/data.cpp b/data.cpp
+index 7feac31..06fe997 100644
+--- a/data.cpp
++++ b/data.cpp
+@@ -582,6 +582,12 @@ void DataManager::SetDefaultValues()
+ #else
+ 	mConst.SetValue(TW_REBOOT_BOOTLOADER, "1");
+ #endif
++#ifdef TW_NO_ADVANCED_COMPRESSION
++	printf("TW_NO_ADVANCED_COMPRESSION := true\n");
++	mConst.SetValue(TW_ADVANCED_COMPRESSION, "0");
++#else
++	mConst.SetValue(TW_ADVANCED_COMPRESSION, "1");
++#endif
+ #ifdef RECOVERY_SDCARD_ON_DATA
+ 	printf("RECOVERY_SDCARD_ON_DATA := true\n");
+ 	mConst.SetValue(TW_HAS_DATA_MEDIA, "1");
+@@ -696,6 +702,10 @@ void DataManager::SetDefaultValues()
+ 	mPersist.SetValue(TW_FORCE_MD5_CHECK_VAR, "0");
+ 	mPersist.SetValue(TW_DISABLE_FREE_SPACE_VAR, "0");
+ 	mPersist.SetValue(TW_USE_COMPRESSION_VAR, "0");
++#ifndef TW_NO_ADVANCED_COMPRESSION
++	mPersist.SetValue("tw_compressor", "pigz");
++	mPersist.SetValue("tw_compressor_guisel", "pigz");
++#endif
+ 	mPersist.SetValue(TW_TIME_ZONE_VAR, "CST6CDT,M3.2.0,M11.1.0");
+ 	mPersist.SetValue(TW_GUI_SORT_ORDER, "1");
+ 	mPersist.SetValue(TW_RM_RF_VAR, "0");
+diff --git a/gui/action.cpp b/gui/action.cpp
+index a395158..9b7c034 100644
+--- a/gui/action.cpp
++++ b/gui/action.cpp
+@@ -174,6 +174,7 @@ GUIAction::GUIAction(xml_node<>* node)
+ 		ADD_ACTION(compute);
+ 		ADD_ACTION_EX("addsubtract", compute);
+ 		ADD_ACTION(setguitimezone);
++		ADD_ACTION(setguicompressor);
+ 		ADD_ACTION(overlay);
+ 		ADD_ACTION(queuezip);
+ 		ADD_ACTION(cancelzip);
+@@ -743,6 +744,14 @@ int GUIAction::setguitimezone(std::string arg __unused)
+ 	return 0;
+ }
+ 
++int GUIAction::setguicompressor(std::string arg)
++{
++	string selectedCompressor;
++	DataManager::GetValue("tw_compressor_guisel", selectedCompressor); // read the selected compressor into selectedCompressor
++	DataManager::SetValue("tw_compressor", selectedCompressor);
++	return 0;
++}
++
+ int GUIAction::overlay(std::string arg)
+ {
+ 	return gui_changeOverlay(arg);
+diff --git a/gui/objects.hpp b/gui/objects.hpp
+index 630cf71..2b776ae 100644
+--- a/gui/objects.hpp
++++ b/gui/objects.hpp
+@@ -314,6 +314,7 @@ protected:
+ 	int copylog(std::string arg);
+ 	int compute(std::string arg);
+ 	int setguitimezone(std::string arg);
++	int setguicompressor(std::string arg);
+ 	int overlay(std::string arg);
+ 	int queuezip(std::string arg);
+ 	int cancelzip(std::string arg);
+diff --git a/gui/theme/common/landscape.xml b/gui/theme/common/landscape.xml
+index 6d54483..a820c4e 100644
+--- a/gui/theme/common/landscape.xml
++++ b/gui/theme/common/landscape.xml
+@@ -1686,6 +1686,20 @@
+ 				<data variable="tw_disable_free_space"/>
+ 			</checkbox>
+ 
++			<button>
++				<condition var1="tw_advanced_compression" op="=" var2="1"/>
++				<condition var1="tw_use_compression" op="=" var2="1"/>
++				<highlight color="%highlight_color%"/>
++				<placement x="%col2_x_right%" y="%row10_y%"/>
++				<font resource="font_m" color="%text_button_color%"/>
++				<text>{@select_compressor_btn=Select compressor}</text>
++				<image resource="main_button_half_width"/>
++				<actions>
++					<action function="set">tw_back=backup</action>
++					<action function="page">select_compressor</action>
++				</actions>
++			</button>
++
+ 			<button style="main_button_half_width">
+ 				<condition var1="tw_enable_adb_backup" op="!=" var2="1"/>
+ 				<placement x="%col1_x_left%" y="%row15a_y%"/>
+@@ -1721,6 +1735,54 @@
+ 			</action>
+ 		</page>
+ 
++		<page name="select_compressor">
++			<template name="page"/>
++
++			<text style="text_l">
++				<placement x="%col1_x_header%" y="%row3_header_y%"/>
++				<text>{@settings_hdr=Settings}</text>
++			</text>
++
++			<text style="text_m">
++				<placement x="%col1_x_header%" y="%row4_header_y%"/>
++				<text>{@select_compressor_hdr=Current compressor - %tw_compressor%}</text>
++			</text>
++
++			<listbox>
++				<placement x="%col1_x_left%" y="%row1_y%" w="%content_half_width%" h="%listbox_compression_height%"/>
++				<text>{@select_compressor=Select Compressor:}</text>
++				<icon selected="radio_true" unselected="radio_false" />
++				<data name="tw_compressor_guisel" />
++				<listitem name="pigz">pigz</listitem>
++				<listitem name="pigz -1">pigz -1</listitem>
++				<listitem name="pigz -2">pigz -2</listitem>
++				<listitem name="pigz -3">pigz -3</listitem>
++				<listitem name="pigz -4">pigz -4</listitem>
++				<listitem name="pigz -5">pigz -5</listitem>
++				<listitem name="pigz -6">pigz -6</listitem>
++				<listitem name="pigz -7">pigz -7</listitem>
++				<listitem name="pigz -8">pigz -8</listitem>
++				<listitem name="pigz -9">pigz -9</listitem>
++			</listbox>
++
++			<button style="main_button">
++				<placement x="%col1_x_right%" y="%row16_y%"/>
++				<text>{@set_compressor_btn=Set Compressor}</text>
++				<action function="setguicompressor"></action>
++				<action function="page">backup</action>
++			</button>
++
++			<action>
++				<touch key="home"/>
++				<action function="page">main</action>
++			</action>
++
++			<action>
++				<touch key="back"/>
++				<action function="page">backup</action>
++			</action>
++		</page>
++
+ 		<page name="backupname1">
+ 			<action>
+ 				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
+diff --git a/gui/theme/common/languages/en.xml b/gui/theme/common/languages/en.xml
+index 36be162..419d3ba 100644
+--- a/gui/theme/common/languages/en.xml
++++ b/gui/theme/common/languages/en.xml
+@@ -217,6 +217,10 @@
+ 		<string name="enable_backup_comp_chk">Enable compression</string>
+ 		<string name="skip_md5_backup_chk">Skip MD5 generation during backup</string>
+ 		<string name="disable_backup_space_chk" version="2">Disable free space check before backup</string>
++		<string name="select_compressor_btn">Select compressor</string>
++		<string name="select_compressor">Select compressor:</string>
++		<string name="select_compressor_hdr">Current compressor - %tw_compressor%</string>
++		<string name="set_compressor_btn">Set compressor</string>
+ 		<string name="current_boot_slot">Current Slot: %tw_active_slot%</string>
+ 		<string name="boot_slot_a">Slot A</string>
+ 		<string name="boot_slot_b">Slot B</string>
+diff --git a/gui/theme/common/languages/ru.xml b/gui/theme/common/languages/ru.xml
+index c151586..232d640 100644
+--- a/gui/theme/common/languages/ru.xml
++++ b/gui/theme/common/languages/ru.xml
+@@ -214,6 +214,10 @@
+ 		<string name="enable_backup_comp_chk">Использовать сжатие</string>
+ 		<string name="skip_md5_backup_chk">Пропустить создание MD5</string>
+ 		<string name="disable_backup_space_chk" version="2">Отключить проверку свободного места</string>
++		<string name="select_compressor_btn">Выбрать компрессор</string>
++		<string name="select_compressor">Выберите компрессор:</string>
++		<string name="select_compressor_hdr">Текущий компрессор - %tw_compressor%</string>
++		<string name="set_compressor_btn">Задать компрессор</string>
+ 		<string name="current_boot_slot">Текущий слот: %tw_active_slot%</string>
+ 		<string name="boot_slot_a">Слот A</string>
+ 		<string name="boot_slot_b">Слот B</string>
+diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
+index fd35364..adc7e25 100644
+--- a/gui/theme/common/portrait.xml
++++ b/gui/theme/common/portrait.xml
+@@ -1721,6 +1721,17 @@
+ 				<data variable="tw_disable_free_space"/>
+ 			</checkbox>
+ 
++			<button style="main_button_half_height">
++				<condition var1="tw_advanced_compression" var2="1" />
++				<condition var1="tw_use_compression" var2="1" />
++				<placement x="%indent%" y="%row8_y%"/>
++				<text>{@select_compressor_btn=Select compressor}</text>
++				<actions>
++					<action function="set">tw_back=backup</action>
++					<action function="page">select_compressor</action>
++				</actions>
++			</button>
++
+ 			<text style="text_m">
+ 				<condition var1="tw_has_boot_slots" var2="1"/>
+ 				<placement x="%center_x%" y="%row17_y%" placement="5"/>
+@@ -1770,6 +1781,54 @@
+ 			</action>
+ 		</page>
+ 
++		<page name="select_compressor">
++			<template name="page"/>
++
++			<text style="text_l">
++				<placement x="%col1_x_header%" y="%row3_header_y%"/>
++				<text>{@settings_hdr=Settings}</text>
++			</text>
++
++			<text style="text_m">
++				<placement x="%col1_x_header%" y="%row4_header_y%"/>
++				<text>{@select_compressor_hdr=Current compressor - %tw_compressor%}</text>
++			</text>
++
++			<listbox>
++				<placement x="%indent%" y="%row2_y%" w="%content_width%" h="%listbox_compression_height%"/>
++				<text>{@select_compressor=Select Compressor:}</text>
++				<icon selected="radio_true" unselected="radio_false" />
++				<listitem name="pigz">pigz</listitem>
++				<listitem name="pigz -1">pigz -1</listitem>
++				<listitem name="pigz -2">pigz -2</listitem>
++				<listitem name="pigz -3">pigz -3</listitem>
++				<listitem name="pigz -4">pigz -4</listitem>
++				<listitem name="pigz -5">pigz -5</listitem>
++				<listitem name="pigz -6">pigz -6</listitem>
++				<listitem name="pigz -7">pigz -7</listitem>
++				<listitem name="pigz -8">pigz -8</listitem>
++				<listitem name="pigz -9">pigz -9</listitem>
++				<data name="tw_compressor_guisel" />
++			</listbox>
++
++			<button style="main_button_half_height">
++				<placement x="%center_x%" y="%row21a_y%"/>
++				<text>{@set_compressor_btn=Set Compressor}</text>
++				<action function="setguicompressor"></action>
++				<action function="page">backup_options</action>
++			</button>
++
++			<action>
++				<touch key="home"/>
++				<action function="page">main</action>
++			</action>
++
++			<action>
++				<touch key="back"/>
++				<action function="page">backup_options</action>
++			</action>
++		</page>
++
+ 		<page name="backupname1">
+ 			<action>
+ 				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
+diff --git a/gui/theme/common/watch.xml b/gui/theme/common/watch.xml
+index ebfe497..89f9f97 100644
+--- a/gui/theme/common/watch.xml
++++ b/gui/theme/common/watch.xml
+@@ -2034,6 +2034,18 @@
+ 			</listbox>
+ 
+ 			<button>
++				<condition var1="tw_advanced_compression" var2="1" />
++				<condition var1="tw_use_compression" var2="1" />
++				<placement x="%btn4_col3_x%" y="%row11_y%"/>
++				<highlight color="%highlight_color%"/>
++				<image resource="q_btn_addzip"/>
++				<actions>
++					<action function="set">tw_back=backup_options</action>
++					<action function="page">select_compressor</action>
++				</actions>
++			</button>
++
++			<button>
+ 				<placement x="%col1_x_left%" y="%row11_y%"/>
+ 				<highlight color="%highlight_color%"/>
+ 				<image resource="q_btn_arrow_left"/>
+@@ -2098,6 +2110,75 @@
+ 			</action>
+ 		</page>
+ 
++		<page name="select_compressor">
++			<template name="page"/>
++
++			<template name="statusbar"/>
++
++			<text style="text_m">
++				<placement x="%col1_x_left%" y="%row1_header_y%"/>
++				<text>{@settings_hdr=Settings} &gt; {@select_compressor_hdr=Current compressor - %tw_compressor%}</text>
++			</text>
++
++			<text color="%text_color%">
++				<font resource="font_m"/>
++				<placement x="%indent_right%" y="%row1_header_y%" placement="1"/>
++				<text>%tw_time%</text>
++			</text>
++
++			<listbox style="listbox_headerless">
++				<placement x="%col1_x_left%" y="%row2_header_y%" w="%content_width%" h="%listbox_compression_height%"/>
++				<icon selected="radio_true" unselected="radio_false" />
++				<data name="tw_compressor_guisel" />
++				<listitem name="pigz">pigz</listitem>
++				<listitem name="pigz -1">pigz -1</listitem>
++				<listitem name="pigz -2">pigz -2</listitem>
++				<listitem name="pigz -3">pigz -3</listitem>
++				<listitem name="pigz -4">pigz -4</listitem>
++				<listitem name="pigz -5">pigz -5</listitem>
++				<listitem name="pigz -6">pigz -6</listitem>
++				<listitem name="pigz -7">pigz -7</listitem>
++				<listitem name="pigz -8">pigz -8</listitem>
++				<listitem name="pigz -9">pigz -9</listitem>
++			</listbox>
++
++			<button>
++				<placement x="%btn4_col1_x%" y="%row11_y%"/>
++				<highlight color="%highlight_color%"/>
++				<image resource="q_btn_arrow_left"/>
++				<actions>
++					<action function="setguicompressor"/>
++					<action function="page">backup_options</action>
++				</actions>
++			</button>
++
++			<action>
++				<condition var1="tw_compressor_guisel" op="modified"/>
++				<action function="setguicompressor"/>
++			</action>
++
++			<action>
++				<touch key="home"/>
++				<actions>
++					<action function="page">main</action>
++					<action function="setguicompressor"/>
++				</actions>
++			</action>
++
++			<action>
++				<touch key="back"/>
++				<actions>
++					<action function="page">backup_options</action>
++					<action function="setguicompressor"/>
++				</actions>
++			</action>
++
++			<action>
++				<touch key="power+voldown"/>
++				<action function="screenshot"/>
++			</action>
++		</page>
++
+ 		<page name="backup_confirm">
+ 			<template name="page"/>
+ 
+diff --git a/gui/theme/landscape_hdpi/ui.xml b/gui/theme/landscape_hdpi/ui.xml
+index 34ef530..8d987ad 100644
+--- a/gui/theme/landscape_hdpi/ui.xml
++++ b/gui/theme/landscape_hdpi/ui.xml
+@@ -196,6 +196,7 @@
+ 		<variable name="partitionlist_wipe_height" value="600"/>
+ 		<variable name="partitionlist_mount_height" value="552"/>
+ 		<variable name="partitionlist_backup_height" value="528"/>
++		<variable name="listbox_compression_height" value="840"/>
+ 		<variable name="listbox_timezone_height" value="768"/>
+ 		<variable name="listbox_settings_height" value="648"/>
+ 		<variable name="fastscroll_w" value="18"/>
+diff --git a/gui/theme/landscape_mdpi/ui.xml b/gui/theme/landscape_mdpi/ui.xml
+index c2cfc4f..cb0c3cc 100644
+--- a/gui/theme/landscape_mdpi/ui.xml
++++ b/gui/theme/landscape_mdpi/ui.xml
+@@ -196,6 +196,7 @@
+ 		<variable name="partitionlist_wipe_height" value="243"/>
+ 		<variable name="partitionlist_mount_height" value="221"/>
+ 		<variable name="partitionlist_backup_height" value="198"/>
++		<variable name="listbox_compression_height" value="333"/>
+ 		<variable name="listbox_timezone_height" value="306"/>
+ 		<variable name="listbox_settings_height" value="243"/>
+ 		<variable name="fastscroll_w" value="7"/>
+diff --git a/gui/theme/portrait_hdpi/ui.xml b/gui/theme/portrait_hdpi/ui.xml
+index 4bce146..37f01d9 100644
+--- a/gui/theme/portrait_hdpi/ui.xml
++++ b/gui/theme/portrait_hdpi/ui.xml
+@@ -200,6 +200,7 @@
+ 		<variable name="partitionlist_wipe_height" value="1088"/>
+ 		<variable name="partitionlist_mount_height" value="832"/>
+ 		<variable name="partitionlist_backup_height" value="768"/>
++		<variable name="listbox_compression_height" value="1152"/>
+ 		<variable name="listbox_timezone_height" value="756"/>
+ 		<variable name="listbox_settings_height" value="960"/>
+ 		<variable name="fastscroll_w" value="24"/>
+diff --git a/gui/theme/portrait_mdpi/ui.xml b/gui/theme/portrait_mdpi/ui.xml
+index 94c1428..5fa1f64 100644
+--- a/gui/theme/portrait_mdpi/ui.xml
++++ b/gui/theme/portrait_mdpi/ui.xml
+@@ -200,6 +200,7 @@
+ 		<variable name="partitionlist_wipe_height" value="442"/>
+ 		<variable name="partitionlist_mount_height" value="338"/>
+ 		<variable name="partitionlist_backup_height" value="312"/>
++		<variable name="listbox_compression_height" value="468"/>
+ 		<variable name="listbox_timezone_height" value="306"/>
+ 		<variable name="listbox_settings_height" value="400"/>
+ 		<variable name="fastscroll_w" value="10"/>
+diff --git a/gui/theme/watch_mdpi/ui.xml b/gui/theme/watch_mdpi/ui.xml
+index 3ef71af..c3a0d75 100644
+--- a/gui/theme/watch_mdpi/ui.xml
++++ b/gui/theme/watch_mdpi/ui.xml
+@@ -158,6 +158,7 @@
+ 		<variable name="partitionlist_spacing" value="0"/>
+ 		<variable name="partitionlist_storage_height" value="160"/>
+ 		<variable name="partitionlist_wipe_height" value="160"/>
++		<variable name="listbox_compression_height" value="248"/>
+ 		<variable name="listbox_timezone_height" value="248"/>
+ 		<variable name="listbox_settings_height" value="248"/>
+ 		<variable name="fastscroll_w" value="10"/>
+diff --git a/twrpTar.cpp b/twrpTar.cpp
+index 3911733..b82c1fc 100644
+--- a/twrpTar.cpp
++++ b/twrpTar.cpp
+@@ -891,6 +891,47 @@ int twrpTar::addFilesToExistingTar(vector <string> files, string fn) {
+ 	return 0;
+ }
+ 
++#ifndef TW_NO_ADVANCED_COMPRESSION
++int twrpTar::execlpCompressor() {
++	string compression_mode;
++	DataManager::GetValue("tw_compressor", compression_mode);
++	int ret = -1;
++
++	if (compression_mode == "pigz")
++		ret=execlp("pigz", "pigz", "-", NULL);
++
++	if (compression_mode == "pigz -1")
++		ret=execlp("pigz", "pigz", "-1", "-", NULL);
++
++	if (compression_mode == "pigz -2")
++		ret=execlp("pigz", "pigz", "-2", "-", NULL);
++
++	if (compression_mode == "pigz -3")
++		ret=execlp("pigz", "pigz", "-3", "-", NULL);
++
++	if (compression_mode == "pigz -4")
++		ret=execlp("pigz", "pigz", "-4", "-", NULL);
++
++	if (compression_mode == "pigz -5")
++		ret=execlp("pigz", "pigz", "-5", "-", NULL);
++
++	if (compression_mode == "pigz -6")
++		ret=execlp("pigz", "pigz", "-6", "-", NULL);
++
++	if (compression_mode == "pigz -7")
++		ret=execlp("pigz", "pigz", "-7", "-", NULL);
++
++	if (compression_mode == "pigz -8")
++		ret=execlp("pigz", "pigz", "-8", "-", NULL);
++
++	if (compression_mode == "pigz -9")
++		ret=execlp("pigz", "pigz", "-9", "-", NULL);
++
++	LOGERR("%s: '%s' ERROR (%s)!\n", __func__, compression_mode.c_str(), strerror(errno)); // Should not reach here
++	return ret;
++}
++#endif //TW_NO_ADVANCED_COMPRESSION
++
+ int twrpTar::createTar() {
+ 	char* charTarFile = (char*) tarfn.c_str();
+ 	char* charRootDir = (char*) tardir.c_str();
+@@ -937,8 +978,12 @@ int twrpTar::createTar() {
+ 			dup2(pipes[0], stdinfd);
+ 			close(stdoutfd);
+ 			dup2(pipes[3], stdoutfd);
++#ifndef TW_NO_ADVANCED_COMPRESSION
++			if (execlpCompressor() < 0) {
++#else
+ 			if (execlp("pigz", "pigz", "-", NULL) < 0) {
+ 				LOGINFO("execlp pigz ERROR!\n");
++#endif //TW_NO_ADVANCED_COMPRESSION
+ 				gui_err("backup_error=Error creating backup.");
+ 				close(output_fd);
+ 				close(pipes[0]);
+@@ -1029,8 +1074,12 @@ int twrpTar::createTar() {
+ 			close(pigzfd[1]);   // close unused output pipe
+ 			dup2(pigzfd[0], fileno(stdin)); // remap stdin
+ 			dup2(output_fd, fileno(stdout)); // remap stdout to output file
++#ifndef TW_NO_ADVANCED_COMPRESSION
++			if (execlpCompressor() < 0) {
++#else
+ 			if (execlp("pigz", "pigz", "-", NULL) < 0) {
+ 				LOGINFO("execlp pigz ERROR!\n");
++#endif //TW_NO_ADVANCED_COMPRESSION
+ 				gui_err("backup_error=Error creating backup.");
+ 				close(output_fd);
+ 				close(pigzfd[0]);
+@@ -1185,7 +1234,7 @@ int twrpTar::openTar() {
+ 			pigz_pid = fork();
+ 
+ 			if (pigz_pid < 0) {
+-				LOGINFO("openaes fork() failed\n");
++				LOGINFO("pigz fork() failed\n");
+ 				gui_err("restore_error=Error during restore process.");
+ 				close(input_fd);
+ 				for (i = 0; i < 4; i++)
+diff --git a/twrpTar.hpp b/twrpTar.hpp
+index b07b06f..edf9ba7 100644
+--- a/twrpTar.hpp
++++ b/twrpTar.hpp
+@@ -72,6 +72,9 @@ public:
+ private:
+ 	int extract();
+ 	int addFilesToExistingTar(vector <string> files, string tarFile);
++#ifndef TW_NO_ADVANCED_COMPRESSION
++	int execlpCompressor();
++#endif
+ 	int createTar();
+ 	int addFile(string fn, bool include_root);
+ 	int entryExists(string entry);
+diff --git a/variables.h b/variables.h
+index e73afa6..ce59820 100644
+--- a/variables.h
++++ b/variables.h
+@@ -97,6 +97,7 @@
+ #define TW_REBOOT_POWEROFF          "tw_reboot_poweroff"
+ #define TW_REBOOT_BOOTLOADER        "tw_reboot_bootloader"
+ 
++#define TW_ADVANCED_COMPRESSION     "tw_advanced_compression"
+ #define TW_USE_EXTERNAL_STORAGE     "tw_use_external_storage"
+ #define TW_HAS_INTERNAL             "tw_has_internal"
+ #define TW_INTERNAL_PATH            "tw_internal_path"         // /data/media or /internal
+-- 
+2.10.2
+

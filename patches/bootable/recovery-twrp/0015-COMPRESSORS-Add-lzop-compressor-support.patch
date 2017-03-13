@@ -1,0 +1,226 @@
+From 4aa39437cbc1a1f4201a2a7b14800977999b676e Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 13 Mar 2017 21:16:59 +0300
+Subject: [PATCH 15/20] [COMPRESSORS] Add lzop compressor support
+
+---
+ Android.mk                    |  9 +++++-
+ gui/theme/common/portrait.xml |  5 ++++
+ gui/theme/common/watch.xml    |  5 ++++
+ lzop/Android.mk               | 70 +++++++++++++++++++++++++++++++++++++++++++
+ prebuilt/Android.mk           |  1 +
+ twrp-functions.cpp            |  9 ++++++
+ twrpTar.cpp                   | 15 ++++++++++
+ 7 files changed, 113 insertions(+), 1 deletion(-)
+ create mode 100644 lzop/Android.mk
+
+diff --git a/Android.mk b/Android.mk
+index 9cf0c17..fe740f8 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -464,7 +464,7 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
+     endif
+ endif
+ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
+-    LOCAL_ADDITIONAL_DEPENDENCIES += uunpack zstd pbzip2
++    LOCAL_ADDITIONAL_DEPENDENCIES += uunpack zstd pbzip2 lzop
+ endif
+ # Allow devices to specify device-specific recovery dependencies
+ ifneq ($(TARGET_RECOVERY_DEVICE_MODULES),)
+@@ -536,6 +536,12 @@ ifeq ($(filter restorecon, $(notdir $(BUSYBOX_LINKS))),)
+     exclude += ls
+ endif
+ 
++# Busybox doesn't provice lzop compressor, but decompressor only.
++# Then, exclude lzop applet in flavour to standalone lzop binary for advanced compression.
++ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
++    exclude += lzop
++endif
++
+ RECOVERY_BUSYBOX_TOOLS := $(filter-out $(exclude), $(notdir $(BUSYBOX_LINKS)))
+ RECOVERY_BUSYBOX_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/, $(RECOVERY_BUSYBOX_TOOLS))
+ $(RECOVERY_BUSYBOX_SYMLINKS): BUSYBOX_BINARY := busybox
+@@ -731,6 +737,7 @@ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
+     include $(commands_recovery_local_path)/uunpack/Android.mk
+     include $(commands_recovery_local_path)/zstd/Android.mk
+     include $(commands_recovery_local_path)/pbzip2/Android.mk
++    include $(commands_recovery_local_path)/lzop/Android.mk
+ endif
+ 
+ # FB2PNG
+diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
+index a54816b..d4cbc28 100644
+--- a/gui/theme/common/portrait.xml
++++ b/gui/theme/common/portrait.xml
+@@ -1817,6 +1817,11 @@
+ 				<listitem name="pbzip2 -7">pbzip2 -7</listitem>
+ 				<listitem name="pbzip2 -8">pbzip2 -8</listitem>
+ 				<listitem name="pbzip2 -9">pbzip2 -9</listitem>
++				<listitem name="lzop -1">lzop -1</listitem>
++				<listitem name="lzop -3">lzop -3</listitem>
++				<listitem name="lzop -7">lzop -7</listitem>
++				<listitem name="lzop -8">lzop -8</listitem>
++				<listitem name="lzop -9">lzop -9</listitem>
+ 				<listitem name="zstd -1">zstd -1</listitem>
+ 				<listitem name="zstd -2">zstd -2</listitem>
+ 				<listitem name="zstd -3">zstd -3</listitem>
+diff --git a/gui/theme/common/watch.xml b/gui/theme/common/watch.xml
+index 7d011d9..e52c160 100644
+--- a/gui/theme/common/watch.xml
++++ b/gui/theme/common/watch.xml
+@@ -2149,6 +2149,11 @@
+ 				<listitem name="pbzip2 -7">pbzip2 -7</listitem>
+ 				<listitem name="pbzip2 -8">pbzip2 -8</listitem>
+ 				<listitem name="pbzip2 -9">pbzip2 -9</listitem>
++				<listitem name="lzop -1">lzop -1</listitem>
++				<listitem name="lzop -3">lzop -3</listitem>
++				<listitem name="lzop -7">lzop -7</listitem>
++				<listitem name="lzop -8">lzop -8</listitem>
++				<listitem name="lzop -9">lzop -9</listitem>
+ 				<listitem name="zstd -1">zstd -1</listitem>
+ 				<listitem name="zstd -2">zstd -2</listitem>
+ 				<listitem name="zstd -3">zstd -3</listitem>
+diff --git a/lzop/Android.mk b/lzop/Android.mk
+new file mode 100644
+index 0000000..f95f986
+--- /dev/null
++++ b/lzop/Android.mk
+@@ -0,0 +1,70 @@
++LOCAL_PATH := $(call my-dir)
++
++include $(CLEAR_VARS)
++
++LOCAL_MODULE := lzop
++LOCAL_ARM_MODE := arm
++LOCAL_MODULE_TAGS := eng optional
++LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
++
++LOCAL_C_INCLUDES += bionic/libc/include/ \
++	$(LOCAL_PATH)/src/ \
++	external/zlib/ \
++	external/lzo/include/
++
++LOCAL_CFLAGS += -std=gnu99 -O2 -fomit-frame-pointer \
++	-D_REENTRANT \
++	-DCOMPRESS_MF_MT \
++
++LOCAL_CFLAGS += \
++	-DHAVE_ALLOCA_H \
++	-DHAVE_ARPA_INET_H \
++	-DHAVE_CONFIG_H \
++	-DHAVE_CTYPE_H \
++	-DHAVE_ENDIAN_H \
++	-DHAVE_ERRNO_H \
++	-DHAVE_INTTYPES_H \
++	-DHAVE_MALLOC_H \
++	-DHAVE_PTHREAD_H \
++	-DHAVE_SETENV \
++	-DHAVE_STDINT_H \
++	-DHAVE_STDLIB_H \
++	-DHAVE_STRING_H \
++	-DHAVE_STRINGS_H \
++	-DHAVE_SYS_MMAN_H \
++	-DHAVE_SYS_RESOURCE_H \
++	-DHAVE_SYS_STAT_H \
++	-DHAVE_SYS_TIME_H \
++	-DHAVE_SYS_TYPES_H \
++	-DHAVE_UNISTD_H \
++	-Wno-date-time
++
++
++LOCAL_SRC_FILES :=  \
++	src/lzop.c \
++	src/compress.c \
++	src/filter.c \
++	src/help.c \
++	src/mblock.c \
++	src/p_lzo.c \
++	src/util.c \
++	src/c_init.c \
++	src/c_none.c \
++	src/c_ansim.c \
++	src/c_ansic.c \
++	src/c_screen.c \
++	src/s_object.c \
++	src/s_curses.c \
++	src/s_djgpp2.c \
++	src/s_vcsa.c \
++	src/frames.c \
++	src/djgpp2.c
++
++LOCAL_SHARED_LIBRARIES += \
++	libz
++
++LOCAL_STATIC_LIBRARIES += \
++	liblzo-static
++
++include $(BUILD_EXECUTABLE)
+diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
+index f7af93e..0f3bbdd 100644
+--- a/prebuilt/Android.mk
++++ b/prebuilt/Android.mk
+@@ -34,6 +34,7 @@ ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
+ 	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/pbzip2
+ 	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/zstd
+ 	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/uunpack
++	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/lzop
+ endif
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/pigz
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/fsck.fat
+diff --git a/twrp-functions.cpp b/twrp-functions.cpp
+index a3a0eca..3cbaa08 100644
+--- a/twrp-functions.cpp
++++ b/twrp-functions.cpp
+@@ -211,6 +211,10 @@ Archive_Type TWFunc::Get_File_Type(string fn) {
+ 		LOGINFO("File '%s' is compressed by zstd.\n", fn.c_str());
+ 		return COMPRESSED; // Compressed by zstd
+ 	}
++	else if (firstbyte == 0x89 && secondbyte == 0x4c && thirdbyte == 0x5a && fourthbyte == 0x4f) {
++		LOGINFO("File '%s' is compressed by lzop.\n", fn.c_str());
++		return COMPRESSED; // Compressed by lzop
++	}
+ 	else if (firstbyte == 0x4f && secondbyte == 0x41) {
+ 		LOGINFO("File '%s' is encrypted.\n", fn.c_str());
+ 		return ENCRYPTED; // Encrypted
+@@ -315,6 +319,11 @@ int TWFunc::Try_Decrypting_File(string fn, string password) {
+ 		free(buffer_out);
+ 		return 3; // Compressed by zstd+encrypted
+ 	}
++	else if (firstbyte == 0x89 && secondbyte == 0x4c && thirdbyte == 0x5a && fourthbyte == 0x4f) {
++		LOGINFO("Successfully decrypted '%s' and file is compressed by lzop.\n", fn.c_str());
++		free(buffer_out);
++		return 3; // Compressed by lzop+encrypted
++	}
+ 	if (out_len >= 262) {
+ 		ptr = buffer_out + 257;
+ 		if (strncmp((char*)ptr, "ustar", 5) == 0) {
+diff --git a/twrpTar.cpp b/twrpTar.cpp
+index dddcb03..48f00a5 100644
+--- a/twrpTar.cpp
++++ b/twrpTar.cpp
+@@ -958,6 +958,21 @@ int twrpTar::execlpCompressor() {
+ 	if (compression_mode == "pbzip2 -9")
+ 		ret=execlp("pbzip2", "pbzip2", "-9", NULL);
+ 
++	if (compression_mode == "lzop -1")
++		ret=execlp("lzop", "lzop", "-1", "-", NULL);
++
++	if (compression_mode == "lzop -3")
++		ret=execlp("lzop", "lzop", "-3", "-", NULL);
++
++	if (compression_mode == "lzop -7")
++		ret=execlp("lzop", "lzop", "-7", "-", NULL);
++
++	if (compression_mode == "lzop -8")
++		ret=execlp("lzop", "lzop", "-8", "-", NULL);
++
++	if (compression_mode == "lzop -9")
++		ret=execlp("lzop", "lzop", "-9", "-", NULL);
++
+ 	if (compression_mode == "zstd -1")
+ 		ret=execlp("zstd", "zstd", "-1", "-", NULL);
+ 
+-- 
+2.10.2
+

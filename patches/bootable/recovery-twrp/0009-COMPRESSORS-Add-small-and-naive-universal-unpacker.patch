@@ -1,0 +1,458 @@
+From d9512091a9566be774e54cae63d7563f875cfce7 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 13 Mar 2017 20:11:39 +0300
+Subject: [PATCH 09/20] [COMPRESSORS] Add small and naive universal unpacker
+
+Works in filter mode only (get compressed from stdin and put unpacked to stdout) via calling appropriate external decompressor binary
+
+Supported compressors:
+GZIP
+BZIP2
+LRZIP
+LZIP
+LZOP
+XZ
+ZSTD
+LZ4
+---
+ Android.mk          |   6 +
+ prebuilt/Android.mk |   3 +
+ twrpTar.cpp         |  19 ++++
+ uunpack/Android.mk  |  13 +++
+ uunpack/uunpack.c   | 310 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 351 insertions(+)
+ create mode 100644 uunpack/Android.mk
+ create mode 100644 uunpack/uunpack.c
+
+diff --git a/Android.mk b/Android.mk
+index b5f6d87..569692c 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -463,6 +463,9 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
+         LOCAL_ADDITIONAL_DEPENDENCIES += logd libsysutils libnl init.recovery.logd.rc
+     endif
+ endif
++ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
++    LOCAL_ADDITIONAL_DEPENDENCIES += uunpack
++endif
+ # Allow devices to specify device-specific recovery dependencies
+ ifneq ($(TARGET_RECOVERY_DEVICE_MODULES),)
+     LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_RECOVERY_DEVICE_MODULES)
+@@ -724,6 +727,9 @@ endif
+ ifneq ($(TW_OEM_BUILD),true)
+     include $(commands_recovery_local_path)/orscmd/Android.mk
+ endif
++ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
++    include $(commands_recovery_local_path)/uunpack/Android.mk
++endif
+ 
+ # FB2PNG
+ ifeq ($(TW_INCLUDE_FB2PNG), true)
+diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
+index d23c51d..d56fadf 100644
+--- a/prebuilt/Android.mk
++++ b/prebuilt/Android.mk
+@@ -30,6 +30,9 @@ else
+ 	    endif
+ 	endif
+ endif
++ifneq ($(TW_NO_ADVANCED_COMPRESSION), true)
++	RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/uunpack
++endif
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/pigz
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/fsck.fat
+ RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/fatlabel
+diff --git a/twrpTar.cpp b/twrpTar.cpp
+index b82c1fc..87574b5 100644
+--- a/twrpTar.cpp
++++ b/twrpTar.cpp
+@@ -734,7 +734,11 @@ int twrpTar::extract() {
+ 
+ 	if (current_archive_type == COMPRESSED) {
+ 		//if you return the extractTGZ function directly, stack crashes happen
++#ifndef TW_NO_ADVANCED_COMPRESSION
++		LOGINFO("Extracting compressed tar\n");
++#else
+ 		LOGINFO("Extracting gzipped tar\n");
++#endif //TW_NO_ADVANCED_COMPRESSION
+ 		int ret = extractTar();
+ 		return ret;
+ 	} else if (current_archive_type == ENCRYPTED) {
+@@ -1250,8 +1254,13 @@ int twrpTar::openTar() {
+ 				dup2(pipes[0], stdinfd);
+ 				close(stdoutfd);
+ 				dup2(pipes[3], stdoutfd);
++#ifndef TW_NO_ADVANCED_COMPRESSION
++				if (execlp("uunpack", "uunpack", NULL) < 0) {
++					LOGERR("execlp uunpack ERROR!\n");
++#else
+ 				if (execlp("pigz", "pigz", "-d", "-c", NULL) < 0) {
+ 					LOGINFO("execlp pigz ERROR!\n");
++#endif
+ 					gui_err("restore_error=Error during restore process.");
+ 					close(input_fd);
+ 					close(pipes[0]);
+@@ -1324,7 +1333,11 @@ int twrpTar::openTar() {
+ 	} else if (current_archive_type == COMPRESSED) {
+ 		int pigzfd[2];
+ 
++#ifndef TW_NO_ADVANCED_COMPRESSION
++		LOGINFO("Opening as a compressed...\n");
++#else
+ 		LOGINFO("Opening as a gzip...\n");
++#endif
+ 		if (part_settings->adbbackup)  {
+ 			LOGINFO("opening TW_ADB_RESTORE compressed stream\n");
+ 			input_fd = open(TW_ADB_RESTORE, O_RDONLY | O_LARGEFILE);
+@@ -1357,7 +1370,13 @@ int twrpTar::openTar() {
+ 			close(pigzfd[0]);
+ 			dup2(pigzfd[1], fileno(stdout)); // remap stdout
+ 			dup2(input_fd, fileno(stdin)); // remap input fd to stdin
++#ifndef TW_NO_ADVANCED_COMPRESSION
++			if (execlp("uunpack", "uunpack", NULL) < 0) {
++				LOGERR("execlp uunpack ERROR!\n");
++#else
+ 			if (execlp("pigz", "pigz", "-d", "-c", NULL) < 0) {
++				LOGERR("execlp pigz ERROR!\n");
++#endif
+ 				close(pigzfd[1]);
+ 				close(input_fd);
+ 				LOGINFO("execlp openaes ERROR!\n");
+diff --git a/uunpack/Android.mk b/uunpack/Android.mk
+new file mode 100644
+index 0000000..561e2b6
+--- /dev/null
++++ b/uunpack/Android.mk
+@@ -0,0 +1,13 @@
++LOCAL_PATH := $(call my-dir)
++
++include $(CLEAR_VARS)
++
++LOCAL_MODULE := uunpack
++LOCAL_MODULE_TAGS := eng optional
++LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
++LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
++LOCAL_CFLAGS := -pthread
++LOCAL_SRC_FILES = uunpack.c
++LOCAL_SHARED_LIBRARIES += libc
++
++include $(BUILD_EXECUTABLE)
+diff --git a/uunpack/uunpack.c b/uunpack/uunpack.c
+new file mode 100644
+index 0000000..0932df4
+--- /dev/null
++++ b/uunpack/uunpack.c
+@@ -0,0 +1,310 @@
++#include <errno.h>
++#include <fcntl.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/wait.h>
++
++#ifndef S_SPLINT_S
++#include <unistd.h>
++#endif
++
++#define MAGIC_LENGTH 9
++#define BUFFER_SIZE 65536
++// #define DEBUG
++
++#ifdef DEBUG
++#define D(...) do{ \
++int save_errno = errno;                \
++fprintf(stderr, "%s::%s(): ", __FILE__, __FUNCTION__);  \
++errno = save_errno;                    \
++fprintf(stderr, __VA_ARGS__);          \
++errno = save_errno;\
++} while(0)
++#else
++#define D(...) ((void)0)
++#endif //DEBUG
++
++enum {
++	COMPRESSION_GZIP=0,
++	COMPRESSION_BZIP2,
++	COMPRESSION_LRZIP,
++	COMPRESSION_LZIP,
++	COMPRESSION_LZOP,
++	COMPRESSION_XZ,
++	COMPRESSION_ZSTD,
++	COMPRESSION_LZ4,
++	COMPRESSION_LAST
++};
++
++enum {
++	LIST=0,
++	DECOMPRESS,
++	EVIL
++};
++
++static int check_magic(unsigned char *magic){
++	if(
++		magic[0] == (unsigned char) 0x1f &&
++		magic[1] == (unsigned char) 0x8b)
++		return COMPRESSION_GZIP;
++	else if(
++		magic[0] == (unsigned char) 'B' &&
++		magic[1] == (unsigned char) 'Z' &&
++		magic[2] == (unsigned char) 'h')
++		return COMPRESSION_BZIP2;
++	else if(
++		magic[0] == (unsigned char) 'L' &&
++		magic[1] == (unsigned char) 'R' &&
++		magic[2] == (unsigned char) 'Z' &&
++		magic[3] == (unsigned char) 'I')
++		return COMPRESSION_LRZIP;
++	else if(
++		magic[0] == (unsigned char) 0x04 &&
++		magic[1] == (unsigned char) 0x22 &&
++		magic[2] == (unsigned char) 0x4d &&
++		magic[3] == (unsigned char) 0x18)
++		return COMPRESSION_LZ4;
++	else if(
++		magic[0] == (unsigned char) 'L' &&
++		magic[1] == (unsigned char) 'Z' &&
++		magic[2] == (unsigned char) 'I' &&
++		magic[3] == (unsigned char) 'P')
++		return COMPRESSION_LZIP;
++	else if(
++		magic[1] == (unsigned char) 0xB5 &&
++		magic[2] == (unsigned char) 0x2F &&
++		magic[3] == (unsigned char) 0xFD)
++		return COMPRESSION_ZSTD;
++	else if(
++		magic[0] == (unsigned char) 0xFD &&
++		magic[1] == (unsigned char) '7' &&
++		magic[2] == (unsigned char) 'z' &&
++		magic[3] == (unsigned char) 'X' &&
++		magic[4] == (unsigned char) 'Z' &&
++		magic[5] == (unsigned char) 0x00)
++		return COMPRESSION_XZ;
++	else if(
++		magic[0] == (unsigned char) 0x89 &&
++		magic[1] == (unsigned char) 'L' &&
++		magic[2] == (unsigned char) 'Z' &&
++		magic[3] == (unsigned char) 'O' &&
++		magic[4] == (unsigned char) 0x00 &&
++		magic[5] == (unsigned char) 0x0D &&
++		magic[6] == (unsigned char) 0x0A &&
++		magic[7] == (unsigned char) 0x1A &&
++		magic[8] == (unsigned char) 0x0A)
++		return COMPRESSION_LZOP;
++	else
++		return -1;
++}
++
++/*@null@*/ static void *feed_decompressor(void *param){
++	FILE *compressedPipeFd = (FILE *)param;
++	unsigned char compressedBuf[BUFFER_SIZE];
++	while(feof(stdin) == 0){
++		size_t readed=0, res=0;
++		D("read loop\n");
++		readed=fread(compressedBuf, 1, BUFFER_SIZE, stdin);
++		D("readed %ud bytes\n", (unsigned int)readed);
++		if(readed < BUFFER_SIZE){
++			if(feof(stdin) != 0){
++				D("Done reading\n");
++			} else {
++				fprintf(stderr, "FATAL: Unable to read %ud bytes from stdin (read %ud)\n",
++					BUFFER_SIZE, (unsigned int)readed);
++				exit(EXIT_FAILURE);
++			}
++		}
++		res=fwrite(compressedBuf, 1, readed, compressedPipeFd);
++		if( res != readed){
++			fprintf(stderr, "FATAL: unable to write %ud bytes into compressed pipe, written %ud (%s)",
++				(unsigned int)readed, (unsigned int)res, strerror(errno));
++			exit(EXIT_FAILURE);
++		}
++		else
++			D("Wrote %ud bytes into compressed pipe\n", (unsigned int)res);
++
++		if(feof(stdin) != 0){
++			D("Closing compressedPipe\n");
++			if(fclose(compressedPipeFd) == -1) //close write end
++				fprintf(stderr, "WARNING: unable to close write end of compressed pipe (%s)", strerror(errno));
++			break;
++		}
++	}
++	return NULL;
++}
++
++static void do_something(int what_to_do, unsigned char *magic, int compression){
++	int compressedPipe[2], decompressedPipe[2], error=0;
++	size_t readed=0, res=0;
++	char decompressedBuf[BUFFER_SIZE];
++	pthread_t tid=0;
++	pid_t child_pid=0;
++	FILE *compressedPipeFd, *decompressedPipeFd;
++	if(pipe(compressedPipe) != 0){
++		fprintf(stderr, "Unable to create compressed pipe (%s)\n", strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	if(pipe(decompressedPipe) != 0){
++		fprintf(stdout, "Unable to create decompressed pipe (%s)\n", strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	child_pid=fork();
++
++	switch(child_pid){
++		case -1: //error
++			fprintf(stderr, "FATAL: fork() failed (%s)", strerror(errno));
++			exit(EXIT_FAILURE);
++		case 0: //child
++			if(close(compressedPipe[1]) == -1) //close write end
++				fprintf(stderr, "WARNING: unable to close write end of compressed pipe (%s)", strerror(errno));
++			if (close(decompressedPipe[0]) == -1) //close read end
++				fprintf(stderr, "WARNING: unable to close read end of decompressed pipe (%s)", strerror(errno));
++			if (dup2(compressedPipe[0], 0) == -1){
++				fprintf(stderr, "FATAL: unable to dup2() compressed pipe to stdin (%s)\n", strerror(errno));
++				exit(EXIT_FAILURE);
++			}
++			if (dup2(decompressedPipe[1], 1) == -1){
++				fprintf(stderr, "FATAL: unable to dup2() decompressed pipe to stdout (%s)\n", strerror(errno));
++				exit(EXIT_FAILURE);
++			}
++			switch (what_to_do){
++				case LIST:
++					switch(compression) {
++						case COMPRESSION_GZIP:
++							(void) execlp("pigz", "pigz", "-l", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "pigz",
++								strerror(errno));
++							break;
++						default:
++							fprintf(stderr, "Only gzip compression supported by -l!\n");
++					}
++					exit(EXIT_FAILURE);
++				case DECOMPRESS:
++					switch(compression) {
++						case COMPRESSION_GZIP:
++							(void) execlp("pigz", "pigz", "-d", "-c", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "pigz",
++								strerror(errno));
++							break;
++						case COMPRESSION_BZIP2:
++							(void) execlp("bunzip2", "bunzip2", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "bunzip2",
++								strerror(errno));
++							break;
++						case COMPRESSION_LRZIP:
++							(void) execlp("lrzip", "lrzip", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "lrzip",
++								strerror(errno));
++							break;
++						case COMPRESSION_LZIP:
++							(void) execlp("plzip", "plzip", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "plzip",
++								strerror(errno));
++							break;
++						case COMPRESSION_LZOP:
++							(void) execlp("lzop", "lzop", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "lzop",
++								strerror(errno));
++							break;
++						case COMPRESSION_XZ:
++							(void) execlp("xz", "xz", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "xz",
++								strerror(errno));
++							break;
++						case COMPRESSION_ZSTD:
++							(void) execlp("zstd", "zstd", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "zstd",
++								strerror(errno));
++							break;
++						case COMPRESSION_LZ4:
++							(void) execlp("lz4", "lz4", "-d", "-", NULL);
++							fprintf(stderr, "Unable to execute %s decompressor (%s)\n", "lz4",
++								strerror(errno));
++							break;
++						default:
++							fprintf(stderr, "UNKNOWN COMPRESSED FORMAT!\n");
++							break;
++					}
++					exit(EXIT_FAILURE); // control flow will never reach this place if all went good
++				default:
++					fprintf(stderr, "FATAL: something went wrong in do_something()\n");
++					exit(EXIT_FAILURE);
++			}
++
++		default: //parent
++			if(close(compressedPipe[0]) == -1) //close read end
++				fprintf(stderr, "WARNING: unable to close read end of compressed pipe (%s)", strerror(errno));
++			if (close(decompressedPipe[1]) == -1) //close write end
++				fprintf(stderr, "WARNING: unable to close write end of decompressed pipe (%s)", strerror(errno));
++			compressedPipeFd=fdopen(compressedPipe[1], "w");
++			if(compressedPipeFd == NULL){
++				fprintf(stderr, "FATAL: unable to fdopen compressed pipe for writing (%s)", strerror(errno));
++				exit(EXIT_FAILURE);
++			}
++
++			decompressedPipeFd=fdopen(decompressedPipe[0], "r");
++			if(decompressedPipeFd == NULL){
++				fprintf(stderr, "FATAL: unable to fdopen decompressed pipe for reading (%s)", strerror(errno));
++				exit(EXIT_FAILURE);
++			}
++			res=fwrite(magic, 1, MAGIC_LENGTH, compressedPipeFd);
++			if(res != MAGIC_LENGTH){
++				fprintf(stderr, "FATAL: unable to write %d bytes into compressed pipe, written %d (%s)",
++					MAGIC_LENGTH, (int)res, strerror(errno));
++				exit(EXIT_FAILURE);
++			}
++			error=pthread_create(&tid, NULL, feed_decompressor, compressedPipeFd);
++			if (error != 0){
++				fprintf(stderr, "FATAL: unable to create compressor feeding thread (%s)", strerror(error));
++				exit(EXIT_FAILURE);
++			}
++
++			while(!0){
++				readed = fread(decompressedBuf, 1, BUFFER_SIZE, decompressedPipeFd);
++				if(readed == 0)
++					break;
++				D("readed %ud bytes\n", (unsigned int)readed);
++				res=fwrite(decompressedBuf, 1, readed, stdout);
++				if(res < readed){
++					fprintf(stderr, "FATAL: unable to write %ud bytes to stdout, %ud written (%s)",
++						(unsigned int)readed, (unsigned int)res, strerror(errno));
++					exit(EXIT_FAILURE);
++				}
++				else {
++					D("written %ud bytes to stdout\n", (unsigned int)readed);
++				}
++				errno=0;
++			}
++			if (waitpid(child_pid, NULL, 0) == -1)
++				fprintf(stderr, "WARNING: waitpid() for decompressor failed (%s)\n", strerror(errno));
++			break;
++	}
++}
++
++int main(int argc, char** argv){
++	unsigned char magic[MAGIC_LENGTH];
++	int compression, i;
++	memset(magic, 0, MAGIC_LENGTH);
++
++	if(fread(magic, MAGIC_LENGTH, 1, stdin) != 1 ){
++		fprintf(stderr, "FATAL: Unable to read %d bytes from stdin\n", MAGIC_LENGTH);
++		exit(EXIT_FAILURE);
++	}
++
++	compression=check_magic(magic);
++
++	for (i=0; i<argc; i++){
++		if(argv[i] != NULL && strncmp(argv[i], "-l", 2) == 0){
++			do_something(LIST, magic, compression);
++			exit(EXIT_SUCCESS);
++		}
++	}
++
++	do_something(DECOMPRESS, magic, compression);
++	exit(EXIT_SUCCESS);
++}
+-- 
+2.10.2
+
