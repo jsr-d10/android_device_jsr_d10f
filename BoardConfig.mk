@@ -145,7 +145,8 @@ ifeq ($(RECOVERY_VARIANT), twrp)
 	PRODUCT_EXTRA_RECOVERY_KEYS += \
 		vendor/jsr/security/cm-12.1/releasekey \
 		vendor/jsr/security/cm-13.0/releasekey \
-		vendor/jsr/security/cm-14.1/releasekey
+		vendor/jsr/security/cm-14.1/releasekey \
+		build/target/product/security/testkey
 endif
 
 # SELinux
