@@ -1,4 +1,4 @@
-From dd2c19bdf75cfa69da01819ac47b5a3b3ec9bbe4 Mon Sep 17 00:00:00 2001
+From 796085825c4c4df77ca730be25b43ff2052add9d Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Sun, 3 Apr 2016 17:35:17 +0300
 Subject: [PATCH] [TORCH] Use sysfs interface for SystemUI FlashlightController
@@ -7,14 +7,14 @@ This should improve stability, performance and battery consumption of Flashlight
 
 Change-Id: I65cd7a07f559d3e7f4cf505c164e2b50f50283cb
 ---
- .../statusbar/policy/FlashlightController.java     | 45 ++++++++++++++--------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ .../statusbar/policy/FlashlightController.java     | 44 ++++++++++++++--------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
-index 96162ec..4ba3955 100644
+index d307a4ceb78a..4b11fc79676f 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
-@@ -37,6 +37,9 @@ import android.util.Log;
+@@ -35,6 +35,9 @@ import android.util.Log;
  
  import com.android.systemui.R;
  
@@ -24,7 +24,7 @@ index 96162ec..4ba3955 100644
  import java.io.FileDescriptor;
  import java.io.PrintWriter;
  import java.lang.ref.WeakReference;
-@@ -54,10 +57,16 @@ public class FlashlightController {
+@@ -52,10 +55,16 @@ public class FlashlightController {
      private static final int DISPATCH_CHANGED = 1;
      private static final int DISPATCH_AVAILABILITY_CHANGED = 2;
  
@@ -42,7 +42,7 @@ index 96162ec..4ba3955 100644
      private final Context mContext;
      /** Call {@link #ensureHandler()} before using */
      private Handler mHandler;
-@@ -71,8 +80,8 @@ public class FlashlightController {
+@@ -66,8 +75,8 @@ public class FlashlightController {
      /** Lock on {@code this} when accessing */
      private boolean mFlashlightEnabled;
  
@@ -53,16 +53,12 @@ index 96162ec..4ba3955 100644
  
      private Notification mNotification = null;
      private boolean mReceiverRegistered;
-@@ -94,33 +103,30 @@ public class FlashlightController {
+@@ -89,22 +98,20 @@ public class FlashlightController {
  
      public FlashlightController(Context context) {
          mContext = context;
 -        mCameraManager = (CameraManager) mContext.getSystemService(Context.CAMERA_SERVICE);
 +        Log.d(TAG, "Initializing");
- 
-         PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
-         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-         mUseWakeLock = mContext.getResources().getBoolean(R.bool.config_useWakelockForFlashlight);
  
 -        tryInitCamera();
 +        tryInitWriter();
@@ -87,15 +83,8 @@ index 96162ec..4ba3955 100644
          }
      }
  
-     public void setFlashlight(boolean enabled) {
-         boolean pendingError = false;
-         synchronized (this) {
--            if (mCameraId == null) return;
-             if (mFlashlightEnabled != enabled) {
+@@ -116,8 +123,15 @@ public class FlashlightController {
                  mFlashlightEnabled = enabled;
- 
-@@ -133,8 +139,15 @@ public class FlashlightController {
-                 }
  
                  try {
 -                    mCameraManager.setTorchMode(mCameraId, enabled);
@@ -112,7 +101,7 @@ index 96162ec..4ba3955 100644
                      Log.e(TAG, "Couldn't set torch mode", e);
                      mFlashlightEnabled = false;
                      pendingError = true;
-@@ -216,7 +229,7 @@ public class FlashlightController {
+@@ -195,7 +209,7 @@ public class FlashlightController {
      public void addListener(FlashlightListener l) {
          synchronized (mListeners) {
              if (mCameraId == null) {
@@ -122,5 +111,5 @@ index 96162ec..4ba3955 100644
              cleanUpListenersLocked(l);
              mListeners.add(new WeakReference<>(l));
 -- 
-2.9.3
+2.11.0
 
