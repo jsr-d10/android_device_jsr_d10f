@@ -1,4 +1,4 @@
-From 796085825c4c4df77ca730be25b43ff2052add9d Mon Sep 17 00:00:00 2001
+From c1995b6c6042d08e567f24c7c815fe9bd2f6d260 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Sun, 3 Apr 2016 17:35:17 +0300
 Subject: [PATCH] [TORCH] Use sysfs interface for SystemUI FlashlightController
@@ -7,11 +7,11 @@ This should improve stability, performance and battery consumption of Flashlight
 
 Change-Id: I65cd7a07f559d3e7f4cf505c164e2b50f50283cb
 ---
- .../statusbar/policy/FlashlightController.java     | 44 ++++++++++++++--------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ .../statusbar/policy/FlashlightController.java     | 45 ++++++++++++++--------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
-index d307a4ceb78a..4b11fc79676f 100644
+index d307a4ceb78a..ab0fc689ee9c 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/FlashlightController.java
 @@ -35,6 +35,9 @@ import android.util.Log;
@@ -53,7 +53,7 @@ index d307a4ceb78a..4b11fc79676f 100644
  
      private Notification mNotification = null;
      private boolean mReceiverRegistered;
-@@ -89,22 +98,20 @@ public class FlashlightController {
+@@ -89,35 +98,39 @@ public class FlashlightController {
  
      public FlashlightController(Context context) {
          mContext = context;
@@ -83,7 +83,11 @@ index d307a4ceb78a..4b11fc79676f 100644
          }
      }
  
-@@ -116,8 +123,15 @@ public class FlashlightController {
+     public void setFlashlight(boolean enabled) {
+         boolean pendingError = false;
+         synchronized (this) {
+-            if (mCameraId == null) return;
+             if (mFlashlightEnabled != enabled) {
                  mFlashlightEnabled = enabled;
  
                  try {
@@ -101,7 +105,7 @@ index d307a4ceb78a..4b11fc79676f 100644
                      Log.e(TAG, "Couldn't set torch mode", e);
                      mFlashlightEnabled = false;
                      pendingError = true;
-@@ -195,7 +209,7 @@ public class FlashlightController {
+@@ -195,7 +208,7 @@ public class FlashlightController {
      public void addListener(FlashlightListener l) {
          synchronized (mListeners) {
              if (mCameraId == null) {
