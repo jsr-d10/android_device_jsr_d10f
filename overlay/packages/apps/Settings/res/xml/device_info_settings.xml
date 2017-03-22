@@ -162,12 +162,15 @@
   />
 
         <!-- CyanogenMod API Version -->
-        <Preference
+        <com.android.settings.DividerPreference
       android:key="mod_api_level"
       android:enabled="false"
+      android:selectable="false"
       android:shouldDisableView="false"
       android:title="@string/mod_api_level"
       android:summary="@string/mod_api_level_default"
+      settings:allowDividerAbove="true"
+      settings:allowDividerBelow="true"
   />
 
         <!-- Security patch level -->
@@ -229,12 +232,15 @@
   />
 
         <!-- Build date -->
-        <Preference
+        <com.android.settings.DividerPreference
       android:key="build_date"
       android:enabled="false"
+      android:selectable="false"
       android:shouldDisableView="false"
       android:title="@string/build_date"
       android:summary="@string/build_date_default"
+      settings:allowDividerAbove="true"
+      settings:allowDividerBelow="true"
   />
 
         <!-- Detailed build version -->
