@@ -33,9 +33,6 @@
 #define STORAGE_XML_CONFIG_CLASSIC_FMT   "<volumes version=\"%d\" primaryStorageUuid=\"primary_physical\" forceAdoptable=\"%s\">\n"
 #define STORAGE_XML_CONFIG_DATAMEDIA_FMT "<volumes version=\"%d\" forceAdoptable=\"%s\">\n"
 
-#define USBMSC_PRESENT_PROPERTY_NAME "ro.usbmsc.present"
-#define USBMSC_PARTITION_PATH "/dev/block/platform/msm_sdcc.1/by-name/usbmsc"
-
 char *mmap_xml_configuration(off_t *size) {
 	FILE *xml_config_filestream = fopen(STORAGE_XML_PATH, "r+");
 	if (xml_config_filestream == NULL) {
@@ -144,31 +141,16 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 
 void set_storage_props(void)
 {
-        int usbmsc_present = FALSE;
 	char value[PROP_VALUE_MAX+1];
 	int isDatamedia = FALSE;
 	int rc = 0;
-        if (access("/dev/block/platform/msm_sdcc.2/by-name/usbmsc", F_OK) == 0)
-            usbmsc_present = TRUE;
-        else if (access("/dev/block/platform/msm_sdcc.1/by-name/usbmsc", F_OK) == 0)
-            usbmsc_present = TRUE;
-        
-	if (usbmsc_present) {
-	    ERROR("usbmsc present\n");
-	    property_set(USBMSC_PRESENT_PROPERTY_NAME, "true");
-        } else {
-		ERROR("usbmsc NOT present\n");
-		property_set(USBMSC_PRESENT_PROPERTY_NAME, "false");
-		isDatamedia = TRUE;
-        }
 
 	rc = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value, "");
-	if (rc && !strcmp(value, STORAGES_CONFIGURATION_DATAMEDIA)) {
-		// if datamedia
+	if (rc && !strcmp(value, STORAGES_CONFIGURATION_DATAMEDIA)) { // if datamedia
 		ERROR("Got datamedia storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
 		isDatamedia = TRUE;
-	} else if (rc && !strcmp(value, STORAGES_CONFIGURATION_INVERTED)) {
-		// if swapped
+	} else if (rc && !strcmp(value, STORAGES_CONFIGURATION_INVERTED)) { // if swapped
+		ERROR("Got inverted storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
 		property_set("ro.vold.primary_physical", "1");
 	} else { // if classic
 		ERROR("Got classic storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
