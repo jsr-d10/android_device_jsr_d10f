@@ -1,4 +1,4 @@
-From 26e8b278780ae9a64c5b280cb4aa796e3ef7fc9f Mon Sep 17 00:00:00 2001
+From 3a8cc672411bace07b92fc720eac4ebcd7746fec Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Tue, 22 Mar 2016 21:35:37 +0300
 Subject: [PATCH 3/3] Revert "OpenDelta: move from apache http to
@@ -12,19 +12,19 @@ This reverts commit 64545998037f363f2b35cc7f90514312fbd8399e.
  2 files changed, 79 insertions(+), 100 deletions(-)
 
 diff --git a/Android.mk b/Android.mk
-index 6323ae6..17755b8 100644
+index acb442b..c96d906 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -7,6 +7,7 @@ LOCAL_PRIVILEGED_MODULE := true
- 
- LOCAL_SRC_FILES := $(call all-java-files-under, src)
+@@ -16,6 +16,7 @@ LOCAL_STATIC_JAVA_LIBRARIES += android-support-v4
+ LOCAL_AAPT_FLAGS := --auto-add-overlay \
+     --extra-packages android.support.v7.cardview
  
 +LOCAL_JAVA_LIBRARIES := org.apache.http.legacy
  LOCAL_JNI_SHARED_LIBRARIES := libopendelta
  LOCAL_REQUIRED_MODULES := libopendelta
- 
+ LOCAL_PROGUARD_FLAG_FILES := proguard-project.txt
 diff --git a/src/eu/chainfire/opendelta/UpdateService.java b/src/eu/chainfire/opendelta/UpdateService.java
-index ec6f612..f23ad77 100644
+index e815ee4..3641ca9 100644
 --- a/src/eu/chainfire/opendelta/UpdateService.java
 +++ b/src/eu/chainfire/opendelta/UpdateService.java
 @@ -21,7 +21,6 @@
@@ -80,7 +80,7 @@ index ec6f612..f23ad77 100644
      private static final int HTTP_CONNECTION_TIMEOUT = 30000;
  
      public static void start(Context context) {
-@@ -545,50 +550,32 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -549,50 +554,32 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
          notificationManager.cancel(NOTIFICATION_ERROR);
      }
  
@@ -150,7 +150,7 @@ index ec6f612..f23ad77 100644
              }
              return null;
          } catch (Exception e) {
-@@ -596,47 +583,34 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -600,47 +587,34 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              // drops, etc. Just log it in debugging mode.
              Logger.ex(e);
              return null;
@@ -212,7 +212,7 @@ index ec6f612..f23ad77 100644
          }
      }
  
-@@ -644,7 +618,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -648,7 +622,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              DeltaInfo.ProgressListener progressListener) {
          Logger.d("download: %s", url);
  
@@ -220,7 +220,7 @@ index ec6f612..f23ad77 100644
          MessageDigest digest = null;
          if (matchMD5 != null) {
              try {
-@@ -657,18 +630,24 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -661,18 +634,24 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
  
          if (f.exists())
              f.delete();
@@ -250,7 +250,7 @@ index ec6f612..f23ad77 100644
                  FileOutputStream os = new FileOutputStream(f, false);
                  try {
                      int r;
-@@ -709,10 +688,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -713,10 +692,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              // drops, etc. Just log it in debugging mode.
              Logger.ex(e);
              return false;
@@ -261,7 +261,7 @@ index ec6f612..f23ad77 100644
          }
      }
  
-@@ -720,7 +695,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -724,7 +699,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              String matchMD5) {
          Logger.d("download: %s", url);
  
@@ -269,7 +269,7 @@ index ec6f612..f23ad77 100644
          MessageDigest digest = null;
          long len = 0;
          if (matchMD5 != null) {
-@@ -734,15 +708,21 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -738,15 +712,21 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
  
          if (f.exists())
              f.delete();
@@ -296,7 +296,7 @@ index ec6f612..f23ad77 100644
  
              updateState(STATE_ACTION_DOWNLOADING, 0f, 0L, len, f.getName(), null);
  
-@@ -777,7 +757,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -781,7 +761,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              if ((len > 0) && (len < 4L * 1024L * 1024L * 1024L)) {
                  byte[] buffer = new byte[262144];
  
@@ -305,7 +305,7 @@ index ec6f612..f23ad77 100644
                  FileOutputStream os = new FileOutputStream(f, false);
                  try {
                      int r;
-@@ -820,33 +800,31 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -824,33 +804,31 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              return false;
          } finally {
              updateState(STATE_ACTION_DOWNLOADING, 100f, len, len, null, null);
@@ -351,5 +351,5 @@ index ec6f612..f23ad77 100644
  
      private String getNewestFullBuild() {
 -- 
-2.5.0
+2.11.0
 

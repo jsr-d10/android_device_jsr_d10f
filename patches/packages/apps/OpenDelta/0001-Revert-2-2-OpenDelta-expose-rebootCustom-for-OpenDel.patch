@@ -1,71 +1,21 @@
-From d39025df5435fde5903a764ea9e8ab280d032d5a Mon Sep 17 00:00:00 2001
+From d82b3a639aa41ff4dff4bf4734a5c6f67411ff37 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Thu, 4 Feb 2016 21:41:13 +0300
-Subject: [PATCH] Revert "[2/2] OpenDelta: expose rebootCustom for OpenDelta"
+Subject: [PATCH 1/3] Revert "[2/2] OpenDelta: expose rebootCustom for
+ OpenDelta"
 
 This patch breaked OpenDelta building in CM-13.0 tree:
 ERROR: /home/android/cm13.0/packages/apps/OpenDelta/src/eu/chainfire/opendelta/UpdateService.java:1604: The method rebootCustom(String) is undefined for the type PowerManager
 This reverts commit 2fe25d83c761676563bfd86b0ff7e723365450d5.
 ---
- res/layout/activity_main.xml                  | 11 ++++-------
- src/eu/chainfire/opendelta/UpdateService.java |  2 +-
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ src/eu/chainfire/opendelta/UpdateService.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/res/layout/activity_main.xml b/res/layout/activity_main.xml
-index 64bad91..56a8ca2 100644
---- a/res/layout/activity_main.xml
-+++ b/res/layout/activity_main.xml
-@@ -187,40 +187,37 @@
- 			android:id="@+id/button_check_now"
- 			android:layout_width="wrap_content"
- 			android:layout_height="48dp"
--			android:maxWidth="150dp"
- 			android:background="?android:attr/selectableItemBackground"
- 			android:onClick="onButtonCheckNowClick"
- 			android:paddingLeft="16dp"
- 			android:paddingRight="16dp"
- 			android:text="@string/button_check_now"
- 			android:textAppearance="@android:style/TextAppearance.Material.Button"
--			android:textColor="@color/button_text_color"/>
-+			android:textColor="@color/button_text_color" />
- 
- 		<Button
- 			android:id="@+id/button_build_delta"
- 			android:layout_width="wrap_content"
- 			android:layout_height="48dp"
--			android:maxWidth="150dp"
- 			android:background="?android:attr/selectableItemBackground"
- 			android:onClick="onButtonBuildNowClick"
- 			android:paddingLeft="16dp"
- 			android:paddingRight="16dp"
- 			android:text="@string/button_build_delta"
- 			android:textAppearance="@android:style/TextAppearance.Material.Button"
--			android:textColor="@color/button_text_color"/>
-+			android:textColor="@color/button_text_color" />
- 
- 		<Button
- 			android:id="@+id/button_flash_now"
- 			android:layout_width="wrap_content"
- 			android:layout_height="48dp"
--			android:maxWidth="150dp"
- 			android:background="?android:attr/selectableItemBackground"
- 			android:onClick="onButtonFlashNowClick"
- 			android:paddingLeft="16dp"
- 			android:paddingRight="16dp"
- 			android:text="@string/button_flash_now"
- 			android:textAppearance="@android:style/TextAppearance.Material.Button"
--			android:textColor="@color/button_text_color"/>
-+			android:textColor="@color/button_text_color" />
- 	</LinearLayout>
- 
--</LinearLayout>
-+</LinearLayout>
-\ No newline at end of file
 diff --git a/src/eu/chainfire/opendelta/UpdateService.java b/src/eu/chainfire/opendelta/UpdateService.java
-index aa81122..6e9f7cd 100644
+index a2b25ae..e815ee4 100644
 --- a/src/eu/chainfire/opendelta/UpdateService.java
 +++ b/src/eu/chainfire/opendelta/UpdateService.java
-@@ -1601,7 +1601,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -1631,7 +1631,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
  
              Logger.d("flashUpdate - reboot to recovery");
  
@@ -75,5 +25,5 @@ index aa81122..6e9f7cd 100644
              // We have failed to write something. There's not really anything
              // else to do at
 -- 
-2.5.0
+2.11.0
 
