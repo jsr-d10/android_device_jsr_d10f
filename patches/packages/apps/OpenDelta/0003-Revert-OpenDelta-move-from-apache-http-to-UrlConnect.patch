@@ -1,4 +1,4 @@
-From 3a8cc672411bace07b92fc720eac4ebcd7746fec Mon Sep 17 00:00:00 2001
+From 5b2b24d4ced15f81f46dd65cd079b5492e843904 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Tue, 22 Mar 2016 21:35:37 +0300
 Subject: [PATCH 3/3] Revert "OpenDelta: move from apache http to
@@ -24,7 +24,7 @@ index acb442b..c96d906 100644
  LOCAL_REQUIRED_MODULES := libopendelta
  LOCAL_PROGUARD_FLAG_FILES := proguard-project.txt
 diff --git a/src/eu/chainfire/opendelta/UpdateService.java b/src/eu/chainfire/opendelta/UpdateService.java
-index e815ee4..3641ca9 100644
+index 0008013..3e1b483 100644
 --- a/src/eu/chainfire/opendelta/UpdateService.java
 +++ b/src/eu/chainfire/opendelta/UpdateService.java
 @@ -21,7 +21,6 @@
@@ -44,7 +44,7 @@ index e815ee4..3641ca9 100644
  import java.security.MessageDigest;
  import java.security.NoSuchAlgorithmException;
  import java.util.ArrayList;
-@@ -42,8 +39,17 @@ import java.util.Iterator;
+@@ -43,8 +40,17 @@ import java.util.Iterator;
  import java.util.List;
  import java.util.Locale;
  import java.util.Date;
@@ -63,7 +63,7 @@ index e815ee4..3641ca9 100644
  import org.json.JSONArray;
  import org.json.JSONException;
  import org.json.JSONObject;
-@@ -71,7 +77,6 @@ import android.os.StatFs;
+@@ -72,7 +78,6 @@ import android.os.StatFs;
  import android.os.SystemClock;
  import android.preference.PreferenceManager;
  import android.text.TextUtils;
@@ -71,7 +71,7 @@ index e815ee4..3641ca9 100644
  import eu.chainfire.opendelta.BatteryState.OnBatteryStateListener;
  import eu.chainfire.opendelta.DeltaInfo.ProgressListener;
  import eu.chainfire.opendelta.NetworkState.OnNetworkStateListener;
-@@ -81,7 +86,7 @@ import eu.chainfire.opendelta.ScreenState.OnScreenStateListener;
+@@ -82,7 +87,7 @@ import eu.chainfire.opendelta.ScreenState.OnScreenStateListener;
  public class UpdateService extends Service implements OnNetworkStateListener,
  OnBatteryStateListener, OnScreenStateListener,
  OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
@@ -80,7 +80,7 @@ index e815ee4..3641ca9 100644
      private static final int HTTP_CONNECTION_TIMEOUT = 30000;
  
      public static void start(Context context) {
-@@ -549,50 +554,32 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -550,50 +555,32 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
          notificationManager.cancel(NOTIFICATION_ERROR);
      }
  
@@ -150,7 +150,7 @@ index e815ee4..3641ca9 100644
              }
              return null;
          } catch (Exception e) {
-@@ -600,47 +587,34 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -601,47 +588,34 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              // drops, etc. Just log it in debugging mode.
              Logger.ex(e);
              return null;
@@ -212,7 +212,7 @@ index e815ee4..3641ca9 100644
          }
      }
  
-@@ -648,7 +622,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -649,7 +623,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              DeltaInfo.ProgressListener progressListener) {
          Logger.d("download: %s", url);
  
@@ -220,7 +220,7 @@ index e815ee4..3641ca9 100644
          MessageDigest digest = null;
          if (matchMD5 != null) {
              try {
-@@ -661,18 +634,24 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -662,18 +635,24 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
  
          if (f.exists())
              f.delete();
@@ -250,7 +250,7 @@ index e815ee4..3641ca9 100644
                  FileOutputStream os = new FileOutputStream(f, false);
                  try {
                      int r;
-@@ -713,10 +692,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -714,10 +693,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              // drops, etc. Just log it in debugging mode.
              Logger.ex(e);
              return false;
@@ -261,7 +261,7 @@ index e815ee4..3641ca9 100644
          }
      }
  
-@@ -724,7 +699,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -725,7 +700,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              String matchMD5) {
          Logger.d("download: %s", url);
  
@@ -269,7 +269,7 @@ index e815ee4..3641ca9 100644
          MessageDigest digest = null;
          long len = 0;
          if (matchMD5 != null) {
-@@ -738,15 +712,21 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -739,15 +713,21 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
  
          if (f.exists())
              f.delete();
@@ -296,7 +296,7 @@ index e815ee4..3641ca9 100644
  
              updateState(STATE_ACTION_DOWNLOADING, 0f, 0L, len, f.getName(), null);
  
-@@ -781,7 +761,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -782,7 +762,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              if ((len > 0) && (len < 4L * 1024L * 1024L * 1024L)) {
                  byte[] buffer = new byte[262144];
  
@@ -305,7 +305,7 @@ index e815ee4..3641ca9 100644
                  FileOutputStream os = new FileOutputStream(f, false);
                  try {
                      int r;
-@@ -824,33 +804,31 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+@@ -825,33 +805,31 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
              return false;
          } finally {
              updateState(STATE_ACTION_DOWNLOADING, 100f, len, len, null, null);
@@ -349,7 +349,7 @@ index e815ee4..3641ca9 100644
 +        return 0;
      }
  
-     private String getNewestFullBuild() {
+     private boolean isMatchingImage(String fileName) {
 -- 
 2.11.0
 
