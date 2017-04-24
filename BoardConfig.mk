@@ -131,7 +131,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 BOARD_NO_SECURE_DISCARD := true
 
 # Uncomment next line to build TWRP
-RECOVERY_VARIANT := twrp
+# RECOVERY_VARIANT := twrp
 ifeq ($(RECOVERY_VARIANT), twrp)
 	TWHAVE_SELINUX := true
 	TARGET_RECOVERY_QCOM_RTC_FIX := true
