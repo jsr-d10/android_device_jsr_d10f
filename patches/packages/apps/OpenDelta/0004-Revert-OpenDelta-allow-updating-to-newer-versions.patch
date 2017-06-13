@@ -1,0 +1,159 @@
+From 8bf1f3aa65df43e8d2570aaebafd048b604ccfe4 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Tue, 13 Jun 2017 17:59:25 +0300
+Subject: [PATCH 4/4] Revert "OpenDelta: allow updating to newer versions"
+
+This reverts commit 733421b0e0b76f3b75db8ce2f55dfbd5649615b2.
+---
+ src/eu/chainfire/opendelta/Config.java        |  4 --
+ src/eu/chainfire/opendelta/UpdateService.java | 24 +---------
+ src/eu/chainfire/opendelta/Version.java       | 68 ---------------------------
+ 3 files changed, 1 insertion(+), 95 deletions(-)
+ delete mode 100644 src/eu/chainfire/opendelta/Version.java
+
+diff --git a/src/eu/chainfire/opendelta/Config.java b/src/eu/chainfire/opendelta/Config.java
+index 3412cd1..551f03e 100644
+--- a/src/eu/chainfire/opendelta/Config.java
++++ b/src/eu/chainfire/opendelta/Config.java
+@@ -290,8 +290,4 @@ public class Config {
+                 getVersion().indexOf(weekly_version_tag) != -1 ||
+                 getVersion().indexOf(security_version_tag) != -1;
+     }
+-
+-    public String getAndroidVersion() {
+-        return android_version;
+-    }
+ }
+diff --git a/src/eu/chainfire/opendelta/UpdateService.java b/src/eu/chainfire/opendelta/UpdateService.java
+index 3e1b483..3641ca9 100644
+--- a/src/eu/chainfire/opendelta/UpdateService.java
++++ b/src/eu/chainfire/opendelta/UpdateService.java
+@@ -35,7 +35,6 @@ import java.net.UnknownHostException;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+ import java.util.ArrayList;
+-import java.util.Arrays;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Locale;
+@@ -832,25 +831,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+         return 0;
+     }
+ 
+-    private boolean isMatchingImage(String fileName) {
+-        try {
+-            if(fileName.endsWith(".zip") && fileName.indexOf(config.getDevice()) != -1) {
+-                String[] parts = fileName.split("-");
+-                if (parts.length > 1) {
+-                    String version = parts[1];
+-                    Version current = new Version(config.getAndroidVersion());
+-                    Version fileVersion = new Version(version);
+-                    if (fileVersion.compareTo(current) >= 0) {
+-                        return true;
+-                    }
+-                }
+-            }
+-        } catch (Exception e) {
+-            Logger.ex(e);
+-        }
+-        return false;
+-    }
+-
+     private String getNewestFullBuild() {
+         Logger.d("Checking for latest full build");
+ 
+@@ -875,8 +855,7 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+                         JSONObject build = builds.getJSONObject(i);
+                         String fileName = new File(build.getString("filename")).getName();
+                         Date timestamp = new Date(build.getLong("timestamp"));
+-                        // latest build can have a larger micro version then what we run now
+-                        if (isMatchingImage(fileName) && timestamp.after(latestTimestamp)) {
++                        if (fileName.endsWith(".zip") && fileName.startsWith(config.getFileBaseNamePrefix()) && timestamp.after(latestTimestamp)) {
+                             latestBuild = fileName;
+                             latestTimestamp = timestamp;
+                         }
+@@ -887,7 +866,6 @@ OnWantUpdateCheckListener, OnSharedPreferenceChangeListener {
+                 return latestBuild;
+             }
+         } catch (Exception e) {
+-            Logger.ex(e);
+         }
+         updateState(STATE_ERROR_UNOFFICIAL, null, null, null, config.getVersion(), null);
+         return null;
+diff --git a/src/eu/chainfire/opendelta/Version.java b/src/eu/chainfire/opendelta/Version.java
+deleted file mode 100644
+index e8828f1..0000000
+--- a/src/eu/chainfire/opendelta/Version.java
++++ /dev/null
+@@ -1,68 +0,0 @@
+-/*
+- * Copyright (C) 2017 The OmniROM Project
+- *
+- * This file is part of OpenDelta.
+- *
+- * OpenDelta is free software: you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
+- * (at your option) any later version.
+- *
+- * OpenDelta is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with OpenDelta. If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-package eu.chainfire.opendelta;
+-
+-public class Version implements Comparable<Version> {
+-
+-    private String version;
+-
+-    public final String get() {
+-        return this.version;
+-    }
+-
+-    public Version(String version) {
+-        if(version == null)
+-            throw new IllegalArgumentException("Version can not be null");
+-        if(!version.matches("[0-9]+(\\.[0-9]+)*"))
+-            throw new IllegalArgumentException("Invalid version format");
+-        this.version = version;
+-    }
+-
+-    @Override
+-    public int compareTo(Version that) {
+-        if(that == null)
+-            return 1;
+-        String[] thisParts = this.get().split("\\.");
+-        String[] thatParts = that.get().split("\\.");
+-        int length = Math.max(thisParts.length, thatParts.length);
+-        for(int i = 0; i < length; i++) {
+-            int thisPart = i < thisParts.length ?
+-                Integer.parseInt(thisParts[i]) : 0;
+-            int thatPart = i < thatParts.length ?
+-                Integer.parseInt(thatParts[i]) : 0;
+-            if(thisPart < thatPart)
+-                return -1;
+-            if(thisPart > thatPart)
+-                return 1;
+-        }
+-        return 0;
+-    }
+-
+-    @Override
+-    public boolean equals(Object that) {
+-        if(this == that)
+-            return true;
+-        if(that == null)
+-            return false;
+-        if(this.getClass() != that.getClass())
+-            return false;
+-        return this.compareTo((Version) that) == 0;
+-    }
+-}
+-- 
+2.11.0
+
