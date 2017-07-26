@@ -1,8 +1,10 @@
-From 16e275e506c85afe06096241c71c50c5f122c53d Mon Sep 17 00:00:00 2001
+From a47a2d744e639841fdf2bf4c8bdee62bb3f6d1cd Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Mon, 13 Mar 2017 19:17:51 +0300
-Subject: [PATCH 08/20] [COMPRESSORS] Allow user to fine tune pigz compression level
+Subject: [PATCH 8/8] [COMPRESSORS] Allow user to fine tune pigz compression
+ level
 
+Change-Id: Id249d8f8c25ffae45ab07edc94ce531b3ed0f2c7
 ---
  Android.mk                        |  3 ++
  data.cpp                          | 10 +++++
@@ -24,10 +26,10 @@ Subject: [PATCH 08/20] [COMPRESSORS] Allow user to fine tune pigz compression le
  17 files changed, 292 insertions(+), 1 deletion(-)
 
 diff --git a/Android.mk b/Android.mk
-index fad1f6d..b5f6d87 100644
+index d9d7b288..cfa57a28 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -357,6 +357,9 @@ ifneq ($(TW_DEFAULT_LANGUAGE),)
+@@ -355,6 +355,9 @@ ifneq ($(TW_DEFAULT_LANGUAGE),)
  else
      LOCAL_CFLAGS += -DTW_DEFAULT_LANGUAGE=en
  endif
@@ -38,7 +40,7 @@ index fad1f6d..b5f6d87 100644
  LOCAL_ADDITIONAL_DEPENDENCIES += \
      dump_image \
 diff --git a/data.cpp b/data.cpp
-index 7feac31..06fe997 100644
+index 02d003c8..caddf466 100644
 --- a/data.cpp
 +++ b/data.cpp
 @@ -582,6 +582,12 @@ void DataManager::SetDefaultValues()
@@ -55,8 +57,8 @@ index 7feac31..06fe997 100644
  	printf("RECOVERY_SDCARD_ON_DATA := true\n");
  	mConst.SetValue(TW_HAS_DATA_MEDIA, "1");
 @@ -696,6 +702,10 @@ void DataManager::SetDefaultValues()
- 	mPersist.SetValue(TW_FORCE_MD5_CHECK_VAR, "0");
  	mPersist.SetValue(TW_DISABLE_FREE_SPACE_VAR, "0");
+ 	mPersist.SetValue(TW_FORCE_DIGEST_CHECK_VAR, "0");
  	mPersist.SetValue(TW_USE_COMPRESSION_VAR, "0");
 +#ifndef TW_NO_ADVANCED_COMPRESSION
 +	mPersist.SetValue("tw_compressor", "pigz");
@@ -66,7 +68,7 @@ index 7feac31..06fe997 100644
  	mPersist.SetValue(TW_GUI_SORT_ORDER, "1");
  	mPersist.SetValue(TW_RM_RF_VAR, "0");
 diff --git a/gui/action.cpp b/gui/action.cpp
-index a395158..9b7c034 100644
+index a3951582..9b7c034c 100644
 --- a/gui/action.cpp
 +++ b/gui/action.cpp
 @@ -174,6 +174,7 @@ GUIAction::GUIAction(xml_node<>* node)
@@ -93,7 +95,7 @@ index a395158..9b7c034 100644
  {
  	return gui_changeOverlay(arg);
 diff --git a/gui/objects.hpp b/gui/objects.hpp
-index 630cf71..2b776ae 100644
+index 630cf710..2b776aea 100644
 --- a/gui/objects.hpp
 +++ b/gui/objects.hpp
 @@ -314,6 +314,7 @@ protected:
@@ -105,7 +107,7 @@ index 630cf71..2b776ae 100644
  	int queuezip(std::string arg);
  	int cancelzip(std::string arg);
 diff --git a/gui/theme/common/landscape.xml b/gui/theme/common/landscape.xml
-index 6d54483..a820c4e 100644
+index 0b8860e2..4c098eea 100644
 --- a/gui/theme/common/landscape.xml
 +++ b/gui/theme/common/landscape.xml
 @@ -1686,6 +1686,20 @@
@@ -185,12 +187,12 @@ index 6d54483..a820c4e 100644
  			<action>
  				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
 diff --git a/gui/theme/common/languages/en.xml b/gui/theme/common/languages/en.xml
-index 36be162..419d3ba 100644
+index e5f83b82..e20df1ec 100644
 --- a/gui/theme/common/languages/en.xml
 +++ b/gui/theme/common/languages/en.xml
-@@ -217,6 +217,10 @@
- 		<string name="enable_backup_comp_chk">Enable compression</string>
- 		<string name="skip_md5_backup_chk">Skip MD5 generation during backup</string>
+@@ -218,6 +218,10 @@
+ 		<string name="disable_backup_space_chk" version="2">Disable free space check before backup</string>
+ 		<string name="skip_digest_backup_chk" version="2">Skip Digest generation during backup</string>
  		<string name="disable_backup_space_chk" version="2">Disable free space check before backup</string>
 +		<string name="select_compressor_btn">Select compressor</string>
 +		<string name="select_compressor">Select compressor:</string>
@@ -200,12 +202,12 @@ index 36be162..419d3ba 100644
  		<string name="boot_slot_a">Slot A</string>
  		<string name="boot_slot_b">Slot B</string>
 diff --git a/gui/theme/common/languages/ru.xml b/gui/theme/common/languages/ru.xml
-index c151586..232d640 100644
+index 0b43bc24..5a24fe36 100644
 --- a/gui/theme/common/languages/ru.xml
 +++ b/gui/theme/common/languages/ru.xml
 @@ -214,6 +214,10 @@
  		<string name="enable_backup_comp_chk">Использовать сжатие</string>
- 		<string name="skip_md5_backup_chk">Пропустить создание MD5</string>
+ 		<string name="skip_digest_backup_chk" version="2">Пропустить создание MD5</string>
  		<string name="disable_backup_space_chk" version="2">Отключить проверку свободного места</string>
 +		<string name="select_compressor_btn">Выбрать компрессор</string>
 +		<string name="select_compressor">Выберите компрессор:</string>
@@ -215,7 +217,7 @@ index c151586..232d640 100644
  		<string name="boot_slot_a">Слот A</string>
  		<string name="boot_slot_b">Слот B</string>
 diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
-index fd35364..adc7e25 100644
+index b0a16607..838a294d 100644
 --- a/gui/theme/common/portrait.xml
 +++ b/gui/theme/common/portrait.xml
 @@ -1721,6 +1721,17 @@
@@ -292,7 +294,7 @@ index fd35364..adc7e25 100644
  			<action>
  				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
 diff --git a/gui/theme/common/watch.xml b/gui/theme/common/watch.xml
-index ebfe497..89f9f97 100644
+index b143d4ab..4fba137a 100644
 --- a/gui/theme/common/watch.xml
 +++ b/gui/theme/common/watch.xml
 @@ -2034,6 +2034,18 @@
@@ -391,7 +393,7 @@ index ebfe497..89f9f97 100644
  			<template name="page"/>
  
 diff --git a/gui/theme/landscape_hdpi/ui.xml b/gui/theme/landscape_hdpi/ui.xml
-index 34ef530..8d987ad 100644
+index 39f626f6..ae5339f1 100644
 --- a/gui/theme/landscape_hdpi/ui.xml
 +++ b/gui/theme/landscape_hdpi/ui.xml
 @@ -196,6 +196,7 @@
@@ -403,7 +405,7 @@ index 34ef530..8d987ad 100644
  		<variable name="listbox_settings_height" value="648"/>
  		<variable name="fastscroll_w" value="18"/>
 diff --git a/gui/theme/landscape_mdpi/ui.xml b/gui/theme/landscape_mdpi/ui.xml
-index c2cfc4f..cb0c3cc 100644
+index cde1a5b7..6b0b4450 100644
 --- a/gui/theme/landscape_mdpi/ui.xml
 +++ b/gui/theme/landscape_mdpi/ui.xml
 @@ -196,6 +196,7 @@
@@ -415,7 +417,7 @@ index c2cfc4f..cb0c3cc 100644
  		<variable name="listbox_settings_height" value="243"/>
  		<variable name="fastscroll_w" value="7"/>
 diff --git a/gui/theme/portrait_hdpi/ui.xml b/gui/theme/portrait_hdpi/ui.xml
-index 4bce146..37f01d9 100644
+index 0545b3f6..1d733f27 100644
 --- a/gui/theme/portrait_hdpi/ui.xml
 +++ b/gui/theme/portrait_hdpi/ui.xml
 @@ -200,6 +200,7 @@
@@ -427,7 +429,7 @@ index 4bce146..37f01d9 100644
  		<variable name="listbox_settings_height" value="960"/>
  		<variable name="fastscroll_w" value="24"/>
 diff --git a/gui/theme/portrait_mdpi/ui.xml b/gui/theme/portrait_mdpi/ui.xml
-index 94c1428..5fa1f64 100644
+index 061d46b0..0dfbf070 100644
 --- a/gui/theme/portrait_mdpi/ui.xml
 +++ b/gui/theme/portrait_mdpi/ui.xml
 @@ -200,6 +200,7 @@
@@ -439,7 +441,7 @@ index 94c1428..5fa1f64 100644
  		<variable name="listbox_settings_height" value="400"/>
  		<variable name="fastscroll_w" value="10"/>
 diff --git a/gui/theme/watch_mdpi/ui.xml b/gui/theme/watch_mdpi/ui.xml
-index 3ef71af..c3a0d75 100644
+index 491de1c4..cac0a535 100644
 --- a/gui/theme/watch_mdpi/ui.xml
 +++ b/gui/theme/watch_mdpi/ui.xml
 @@ -158,6 +158,7 @@
@@ -451,7 +453,7 @@ index 3ef71af..c3a0d75 100644
  		<variable name="listbox_settings_height" value="248"/>
  		<variable name="fastscroll_w" value="10"/>
 diff --git a/twrpTar.cpp b/twrpTar.cpp
-index 3911733..b82c1fc 100644
+index aa00044d..ce764496 100644
 --- a/twrpTar.cpp
 +++ b/twrpTar.cpp
 @@ -891,6 +891,47 @@ int twrpTar::addFilesToExistingTar(vector <string> files, string fn) {
@@ -528,7 +530,7 @@ index 3911733..b82c1fc 100644
  				gui_err("backup_error=Error creating backup.");
  				close(output_fd);
  				close(pigzfd[0]);
-@@ -1185,7 +1234,7 @@ int twrpTar::openTar() {
+@@ -1186,7 +1235,7 @@ int twrpTar::openTar() {
  			pigz_pid = fork();
  
  			if (pigz_pid < 0) {
@@ -538,7 +540,7 @@ index 3911733..b82c1fc 100644
  				close(input_fd);
  				for (i = 0; i < 4; i++)
 diff --git a/twrpTar.hpp b/twrpTar.hpp
-index b07b06f..edf9ba7 100644
+index b07b06f4..edf9ba74 100644
 --- a/twrpTar.hpp
 +++ b/twrpTar.hpp
 @@ -72,6 +72,9 @@ public:
@@ -552,7 +554,7 @@ index b07b06f..edf9ba7 100644
  	int addFile(string fn, bool include_root);
  	int entryExists(string entry);
 diff --git a/variables.h b/variables.h
-index e73afa6..ce59820 100644
+index bcf228c4..48935efa 100644
 --- a/variables.h
 +++ b/variables.h
 @@ -97,6 +97,7 @@
@@ -564,5 +566,5 @@ index e73afa6..ce59820 100644
  #define TW_HAS_INTERNAL             "tw_has_internal"
  #define TW_INTERNAL_PATH            "tw_internal_path"         // /data/media or /internal
 -- 
-2.10.2
+2.11.0
 
