@@ -1,4 +1,4 @@
-From c087c87bcaacd49a22d4a9e9588585ce730257a7 Mon Sep 17 00:00:00 2001
+From ac303cb6c0f8a404a5d3e8c847d08ba92ae6eb1b Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Tue, 13 Jun 2017 18:10:36 +0300
 Subject: [PATCH 9/9] [OTA] framework-res.apk: Add
@@ -20,7 +20,7 @@ Change-Id: I19f5ef066226f1033a0337107cf4d29d220e662a
  1 file changed, 2 insertions(+)
 
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
-index a52480f3a3f..eb4e7ed62f8 100644
+index 67f135c5d1a..8b9de33645b 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
 @@ -275,6 +275,7 @@
@@ -38,7 +38,7 @@ index a52480f3a3f..eb4e7ed62f8 100644
 +    <protected-broadcast android:name="com.android.server.retaildemo.ACTION_RESET_DEMO" />
  
      <protected-broadcast android:name="cyanogenmod.intent.action.LID_STATE_CHANGED" />
-     <!-- ====================================================================== -->
+ 
 -- 
 2.11.0
 
