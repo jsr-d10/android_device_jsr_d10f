@@ -216,6 +216,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sys.sdcardfs=true
 
+# TCP fix
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/etc/init.d/80tcpfix:system/etc/init.d/80tcpfix
+    
 # Thermal
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/thermal-engine-8226.conf:system/etc/thermal-engine-8226.conf
