@@ -1,0 +1,43 @@
+From 0ec2a2367f738cd5b28fc82763821a2064b24307 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 2 Sep 2017 02:41:05 +0300
+Subject: [PATCH 3/3] [CMSDK] ThemeManager: Catch NullPointerException in
+ unregisterThemeChangeListener()
+
+Fixes crash of the Setup Wizard after device provisioning:
+09-02 02:06:46.754  5396  5396 E AndroidRuntime: FATAL EXCEPTION: main
+09-02 02:06:46.754  5396  5396 E AndroidRuntime: Process: com.cyanogenmod.setupwizard, PID: 5396
+09-02 02:06:46.754  5396  5396 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke interface method 'void cyanogenmod.themes.IThemeService.removeUpdates(cyanogenmod.themes.IThemeChangeListener)' on a null object reference
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at cyanogenmod.themes.ThemeManager.unregisterThemeChangeListener(ThemeManager.java:236)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at com.cyanogenmod.setupwizard.FinishActivity.completeSetup(FinishActivity.java:223)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at com.cyanogenmod.setupwizard.FinishActivity.-wrap0(FinishActivity.java)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at com.cyanogenmod.setupwizard.FinishActivity$2$1.run(FinishActivity.java:200)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at android.os.Handler.handleCallback(Handler.java:751)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at android.os.Handler.dispatchMessage(Handler.java:95)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at android.os.Looper.loop(Looper.java:154)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at android.app.ActivityThread.main(ActivityThread.java:6186)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at java.lang.reflect.Method.invoke(Native Method)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:889)
+09-02 02:06:46.754  5396  5396 E AndroidRuntime:        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:779)
+
+Change-Id: I49f29810d4e98f6b7bd086ef5c8189f98bb529ce
+---
+ sdk/src/java/cyanogenmod/themes/ThemeManager.java | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sdk/src/java/cyanogenmod/themes/ThemeManager.java b/sdk/src/java/cyanogenmod/themes/ThemeManager.java
+index 6557118..bbb463c 100644
+--- a/sdk/src/java/cyanogenmod/themes/ThemeManager.java
++++ b/sdk/src/java/cyanogenmod/themes/ThemeManager.java
+@@ -236,6 +236,8 @@ public class ThemeManager {
+                     sService.removeUpdates(mThemeChangeListener);
+                 } catch (RemoteException e) {
+                     Log.w(TAG, "Unable to unregister listener", e);
++                } catch (NullPointerException e) {
++                    Log.w(TAG, "Unable to unregister listener", e);
+                 }
+             }
+         }
+-- 
+2.11.0
+
