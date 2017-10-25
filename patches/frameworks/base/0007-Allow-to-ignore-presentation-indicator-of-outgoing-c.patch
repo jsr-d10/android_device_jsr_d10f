@@ -1,7 +1,7 @@
-From 5eda7b1f786ee8e97b757356cb1e4207df173d9d Mon Sep 17 00:00:00 2001
+From 422946d6a4e3d6eb2e9a9218f8660e288548a355 Mon Sep 17 00:00:00 2001
 From: Gabriele M <moto.falcon.git@gmail.com>
 Date: Thu, 3 Mar 2016 21:16:40 +0100
-Subject: [PATCH 7/7] Allow to ignore presentation indicator of outgoing calls
+Subject: [PATCH 7/9] Allow to ignore presentation indicator of outgoing calls
  [1/3]
 
 With some mobile network operators, the presentation indicator of
@@ -16,23 +16,23 @@ Change-Id: Idd1af3703f5b264d7286cf545bde52011df27f3d
  1 file changed, 7 insertions(+)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 534b444..3f59c77 100644
+index c83bd3e78e9..ffaffe14441 100644
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -9116,6 +9116,13 @@ public final class Settings {
+@@ -9229,6 +9229,13 @@ public final class Settings {
+          */
          public static final String DATABASE_DOWNGRADE_REASON = "database_downgrade_reason";
  
-         /**
++        /**
 +         * Whether to ignore the representation of outgoing calls set by the network.
 +         *
 +         * @hide
 +         */
 +         public static final String CONNECTED_LINE_IDENTIFICATION = "connected_line_identification";
 +
-+        /**
+         /**
           * Settings to backup. This is here so that it's in the same place as the settings
           * keys and easy to update.
-          *
 -- 
-2.9.3
+2.14.1
 

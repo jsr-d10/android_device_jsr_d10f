@@ -1,7 +1,7 @@
-From a291165f4d7b3ae0097b88502c84fd5ab2130331 Mon Sep 17 00:00:00 2001
+From 53af5847a2d76b17d3b472c5d0bd98d9d9bf319e Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Tue, 8 Sep 2015 02:34:35 +0300
-Subject: [PATCH 2/3] Revert "Make torch shutdown by camera usage work
+Subject: [PATCH 2/4] Revert "Make torch shutdown by camera usage work
  properly."
 
 This reverts commit 8cf0b8bbc8bd8b44a348c6859084930f67088795.
@@ -97,7 +97,7 @@ diff --git a/src/net/cactii/flash2/TorchService.java b/src/net/cactii/flash2/Tor
 index 9db7516..f4a0b7d 100644
 --- a/src/net/cactii/flash2/TorchService.java
 +++ b/src/net/cactii/flash2/TorchService.java
-@@ -31,17 +31,18 @@ public class TorchService extends Service {
+@@ -31,29 +31,24 @@ public class TorchService extends Service {
      private static final String MSG_TAG = "TorchRoot";
  
      private int mFlashMode;
@@ -119,19 +119,18 @@ index 9db7516..f4a0b7d 100644
                      sendEmptyMessageDelayed(MSG_UPDATE_FLASH, 100);
                      break;
              }
-@@ -49,12 +50,6 @@ public class TorchService extends Service {
+         }
      };
  
-     @Override
+-    @Override
 -    public void onCreate() {
 -        mFlashDevice = FlashDevice.instance(this);
 -        mUseCameraInterface = getResources().getBoolean(R.bool.useCameraInterface);
 -    }
 -
--    @Override
+     @Override
      public int onStartCommand(Intent intent, int flags, int startId) {
          Log.d(MSG_TAG, "Starting torch");
- 
 @@ -65,14 +60,8 @@ public class TorchService extends Service {
  
          mFlashMode = intent.getBooleanExtra("bright", false)
@@ -180,5 +179,5 @@ index 14b0084..9e46b15 100644
              } else {
                  i.putExtra("bright", bright);
 -- 
-1.9.1
+2.14.1
 
