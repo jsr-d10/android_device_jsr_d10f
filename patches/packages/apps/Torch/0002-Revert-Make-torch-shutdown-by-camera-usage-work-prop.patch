@@ -97,7 +97,7 @@ diff --git a/src/net/cactii/flash2/TorchService.java b/src/net/cactii/flash2/Tor
 index 9db7516..f4a0b7d 100644
 --- a/src/net/cactii/flash2/TorchService.java
 +++ b/src/net/cactii/flash2/TorchService.java
-@@ -31,17 +31,18 @@ public class TorchService extends Service {
+@@ -31,29 +31,24 @@ public class TorchService extends Service {
      private static final String MSG_TAG = "TorchRoot";
  
      private int mFlashMode;
@@ -119,19 +119,18 @@ index 9db7516..f4a0b7d 100644
                      sendEmptyMessageDelayed(MSG_UPDATE_FLASH, 100);
                      break;
              }
-@@ -49,12 +50,6 @@ public class TorchService extends Service {
+         }
      };
  
-     @Override
+-    @Override
 -    public void onCreate() {
 -        mFlashDevice = FlashDevice.instance(this);
 -        mUseCameraInterface = getResources().getBoolean(R.bool.useCameraInterface);
 -    }
 -
--    @Override
+     @Override
      public int onStartCommand(Intent intent, int flags, int startId) {
          Log.d(MSG_TAG, "Starting torch");
- 
 @@ -65,14 +60,8 @@ public class TorchService extends Service {
  
          mFlashMode = intent.getBooleanExtra("bright", false)
@@ -180,5 +179,5 @@ index 14b0084..9e46b15 100644
              } else {
                  i.putExtra("bright", bright);
 -- 
-1.9.1
+2.14.1
 
