@@ -28,6 +28,7 @@
 #include <cutils/log.h>
 
 #include "fstab.h"
+#include "configuration.h"
 
 /* Load STORAGE_CONFIG_PROP from PERSISTENT_PROPERTY_DIR
  * We need to get it earlier than vendor init to make working fstab */
@@ -648,5 +649,6 @@ int main(int nargs, char **args)
     } else {
         ERROR("%s: invalid arguments (nargs=%d, args[0]=%s, args[1]=%s, args[2]=%s, args[3]=%s\n", __func__, nargs, args[0], args[1], args[2], args[3]);
     }
+    set_storage_props();
     return ret;
 }
