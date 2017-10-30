@@ -1,9 +1,9 @@
 echo Sourcing vendor/qcom/proprietary/common/vendorsetup.sh
 . vendor/qcom/proprietary/common/vendorsetup.sh
 
-add_lunch_combo cm_d10f-eng
-add_lunch_combo cm_d10f-user
-add_lunch_combo cm_d10f-userdebug
+add_lunch_combo lineage_d10f-eng
+add_lunch_combo lineage_d10f-user
+add_lunch_combo lineage_d10f-userdebug
 
 sh device/jsr/d10f/patches/apply.sh "device/jsr/d10f/patches/"
 croot

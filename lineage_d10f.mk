@@ -39,7 +39,7 @@ $(call inherit-product-if-exists, vendor/jsr/d10f/d10f-vendor.mk)
 
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := d10f
-PRODUCT_NAME := cm_d10f
+PRODUCT_NAME := lineage_d10f
 PRODUCT_BRAND := JSR
 PRODUCT_MODEL := D10F
 PRODUCT_MANUFACTURER := JSR Tech
