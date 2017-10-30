@@ -1,16 +1,16 @@
-From 7f20a3683af7c9a1adc74e3b96f05a3a18f5d80a Mon Sep 17 00:00:00 2001
+From a265fd45c979adb2a786da8204759a8987313dc4 Mon Sep 17 00:00:00 2001
 From: remittor <remittor@gmail.com>
 Date: Thu, 30 Jul 2015 17:30:59 +0300
-Subject: [PATCH 2/4] Add hook functions to post_process_props.py
+Subject: [PATCH 2/5] Add hook functions to post_process_props.py
 
 ---
  tools/post_process_props.py      |  3 +++
- tools/post_process_props_hook.py | 47 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ tools/post_process_props_hook.py | 45 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+)
  create mode 100755 tools/post_process_props_hook.py
 
 diff --git a/tools/post_process_props.py b/tools/post_process_props.py
-index fc61621..adf41aa 100755
+index fc61621e5..adf41aab2 100755
 --- a/tools/post_process_props.py
 +++ b/tools/post_process_props.py
 @@ -15,6 +15,7 @@
@@ -34,10 +34,10 @@ index fc61621..adf41aa 100755
      sys.exit(1)
 diff --git a/tools/post_process_props_hook.py b/tools/post_process_props_hook.py
 new file mode 100755
-index 0000000..5005061
+index 000000000..17cb50537
 --- /dev/null
 +++ b/tools/post_process_props_hook.py
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,45 @@
 +#!/usr/bin/env python
 +
 +import os, sys, time
@@ -51,7 +51,7 @@ index 0000000..5005061
 +
 +  ver_inc = prop.get("ro.build.version.incremental")
 +
-+  prod_dev = prop.get("ro.product.device")
++  prod_dev = prop.get("ro.cm.device")
 +  outdir = "out/target/product/" + prod_dev + "/"
 +
 +  cm_ver = prop.get("ro.cm.version")
@@ -59,16 +59,21 @@ index 0000000..5005061
 +  build_type = prop.get("ro.build.type")
 +  time_utc = time.gmtime(float(prop.get("ro.build.date.utc")))
 +  time_str = time.strftime("%Y%m%d-%H%M", time_utc)
-+  rom_name = "cm-" + cm_ver_arr[0] + "-" + time_str + "-" + prod_dev
++  rom_name = "lineage-" + cm_ver_arr[0] + "-" + time_str + "-" + prod_dev + "-UNOFFICIAL"
 +  prop.put("ro.ota.current_rom", rom_name)
 +
 +  txt = open(outdir + "ro_ota_current_rom", "w")
 +  txt.write(rom_name)
 +  txt.close()
 +
-+  out_zip = "cm-" + cm_ver + ".zip"
++  out_zip = "lineage-" + cm_ver + ".zip"
 +  txt = open(outdir + "rom_out_package", "w")
 +  txt.write(out_zip)
++  txt.close()
++
++  out_ota_zip = rom_name + ".zip"
++  txt = open(outdir + "rom_ota_name", "w")
++  txt.write(out_ota_zip)
 +  txt.close()
 +  pass
 +
@@ -77,14 +82,7 @@ index 0000000..5005061
 +def mangle_default_prop_hook(prop):
 +  """call mangle_default_prop_hook"""
 +
-+  prop.put("ro.secure", "0")
-+  prop.put("ro.adb.secure", "0")
-+  prop.put("ro.allow.mock.location", "1")
-+  prop.put("ro.debuggable", "1")
-+  prop.put("persist.service.adb.enable", "1")
-+  prop.put("persist.sys.usb.config", "mtp,adb")
-+
 +  pass
 -- 
-2.7.4
+2.14.1
 
