@@ -6,10 +6,10 @@ Subject: [PATCH 4/4] Wakelock Blocker
 src: http://review.cyanogenmod.org/#/c/109898/
 ---
  core/java/android/os/IPowerManager.aidl            |  3 +
- core/java/android/os/PowerManager.java             | 11 +++
+ core/java/android/os/PowerManager.java             | 12 +++
  core/java/android/provider/Settings.java           | 12 +++
  .../android/server/power/PowerManagerService.java  | 92 +++++++++++++++++++++-
- 4 files changed, 114 insertions(+), 4 deletions(-)
+ 4 files changed, 115 insertions(+), 4 deletions(-)
 
 diff --git a/core/java/android/os/IPowerManager.aidl b/core/java/android/os/IPowerManager.aidl
 index 22749158e6a..7c4ca2a07a6 100644
@@ -27,10 +27,11 @@ diff --git a/core/java/android/os/PowerManager.java b/core/java/android/os/Power
 index b394c71534e..c69fceeb415 100644
 --- a/core/java/android/os/PowerManager.java
 +++ b/core/java/android/os/PowerManager.java
-@@ -750,6 +750,17 @@ public final class PowerManager {
+@@ -750,6 +750,18 @@ public final class PowerManager {
          return ret;
      }
  
++    /** {@hide} */
 +    public String getSeenWakeLocks() {
 +        try {
 +            if (mService != null) {

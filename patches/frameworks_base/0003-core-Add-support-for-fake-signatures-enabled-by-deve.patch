@@ -7,11 +7,11 @@ Subject: [PATCH 3/4] core: Add support for fake signatures, enabled by
 src: https://gerrit.omnirom.org/#/c/14898/
 ---
  core/java/android/provider/Settings.java            |  9 +++++++++
- core/res/AndroidManifest.xml                        |  7 +++++++
+ core/res/AndroidManifest.xml                        |  8 ++++++++
  core/res/res/values-ru/cm_strings.xml               |  2 ++
  core/res/res/values/cm_strings.xml                  |  5 +++++
  .../android/server/pm/PackageManagerService.java    | 21 +++++++++++++++++++--
- 5 files changed, 42 insertions(+), 2 deletions(-)
+ 5 files changed, 43 insertions(+), 2 deletions(-)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
 index 97d74607042..2d3e88e11bb 100755
@@ -37,11 +37,12 @@ diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
 index 4494ffedd92..83fc262477f 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
-@@ -1595,6 +1595,13 @@
+@@ -1595,6 +1595,14 @@
          android:label="@string/permlab_getPackageSize"
          android:description="@string/permdesc_getPackageSize" />
  
-+    <!-- Allows an application to change the package signature as seen by applications -->
++    <!-- Allows an application to change the package signature as seen by applications
++    @hide -->
 +    <permission android:name="android.permission.FAKE_PACKAGE_SIGNATURE"
 +        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
 +        android:protectionLevel="dangerous"
