@@ -1,15 +1,15 @@
-From 0bd39ddbcc5f3cb7d53a1752efbf253a75b2131e Mon Sep 17 00:00:00 2001
+From 04fa69de247cfc8e406681d8d43a3e3f059eadfb Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Fri, 2 Oct 2015 01:34:37 +0300
-Subject: [PATCH] frameworks: Read battery capacity from sysfs
+Subject: [PATCH 2/4] frameworks: Read battery capacity from sysfs
 
 Change-Id: Ib9d53895b28519fff800379abe003e934bdadd12
 ---
- core/java/com/android/internal/os/PowerProfile.java | 48 ++++++++++++++++++++++
+ .../java/com/android/internal/os/PowerProfile.java | 48 ++++++++++++++++++++++
  1 file changed, 48 insertions(+)
 
 diff --git a/core/java/com/android/internal/os/PowerProfile.java b/core/java/com/android/internal/os/PowerProfile.java
-index b3bafa1..e1978ba 100644
+index 94750d37660..882e4fb6893 100644
 --- a/core/java/com/android/internal/os/PowerProfile.java
 +++ b/core/java/com/android/internal/os/PowerProfile.java
 @@ -29,6 +29,11 @@ import java.io.IOException;
@@ -24,7 +24,7 @@ index b3bafa1..e1978ba 100644
  /**
   * Reports power consumption values for various device activities. Reads values from an XML file.
   * Customize the XML file for different devices.
-@@ -159,6 +164,7 @@ public class PowerProfile {
+@@ -154,6 +159,7 @@ public class PowerProfile {
      private static final String TAG_ARRAY = "array";
      private static final String TAG_ARRAYITEM = "value";
      private static final String ATTR_NAME = "name";
@@ -32,7 +32,7 @@ index b3bafa1..e1978ba 100644
  
      public PowerProfile(Context context) {
          // Read the XML file for the given profile (normally only one per
-@@ -204,6 +210,48 @@ public class PowerProfile {
+@@ -199,6 +205,48 @@ public class PowerProfile {
                          } catch (NumberFormatException nfe) {
                          }
                          if (element.equals(TAG_ITEM)) {
@@ -82,5 +82,5 @@ index b3bafa1..e1978ba 100644
                          } else if (parsingArray) {
                              array.add(value);
 -- 
-1.9.1
+2.14.1
 

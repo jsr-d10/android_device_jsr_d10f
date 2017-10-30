@@ -1,7 +1,7 @@
-From 6818cdbaac7dbf035ad420ee3c70569bdefeb3da Mon Sep 17 00:00:00 2001
+From 4cdbadfcbee8796bbb0684ad2ea6088e13842f1c Mon Sep 17 00:00:00 2001
 From: remittor <remittor@gmail.com>
 Date: Fri, 10 Jun 2016 15:06:28 +0300
-Subject: [PATCH] Wakelock Blocker
+Subject: [PATCH 2/2] Wakelock Blocker
 
 ---
  AndroidManifest.xml                                |   7 +
@@ -18,7 +18,7 @@ Subject: [PATCH] Wakelock Blocker
  create mode 100644 src/com/android/settings/cyanogenmod/WakeLockBlocker.java
 
 diff --git a/AndroidManifest.xml b/AndroidManifest.xml
-index 3f53b75..d10c02f 100644
+index 3f53b75d5d..d10c02f4c6 100644
 --- a/AndroidManifest.xml
 +++ b/AndroidManifest.xml
 @@ -1869,6 +1869,13 @@
@@ -37,7 +37,7 @@ index 3f53b75..d10c02f 100644
          <activity android:name="Settings$AnonymousStatsActivity"
 diff --git a/res/layout/wakelock_blocker.xml b/res/layout/wakelock_blocker.xml
 new file mode 100644
-index 0000000..7785366
+index 0000000000..778536658d
 --- /dev/null
 +++ b/res/layout/wakelock_blocker.xml
 @@ -0,0 +1,68 @@
@@ -56,7 +56,7 @@ index 0000000..7785366
 +        android:layout_height="wrap_content"
 +        android:gravity="center_vertical"
 +        android:orientation="horizontal">
-+                            
++
 +        <RelativeLayout
 +            android:layout_width="200dip"
 +            android:layout_height="wrap_content"
@@ -111,7 +111,7 @@ index 0000000..7785366
 +</LinearLayout>
 diff --git a/res/layout/wakelock_item.xml b/res/layout/wakelock_item.xml
 new file mode 100644
-index 0000000..bea7ba8
+index 0000000000..bea7ba80ff
 --- /dev/null
 +++ b/res/layout/wakelock_item.xml
 @@ -0,0 +1,14 @@
@@ -130,10 +130,10 @@ index 0000000..bea7ba8
 +
 +</LinearLayout>
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 0ace372..dc89141 100644
+index 42d6d4fa01..063d766bc0 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -527,6 +527,18 @@ two in order to insert additional control points. \'Remove\' deletes the selecte
+@@ -529,6 +529,18 @@ two in order to insert additional control points. \'Remove\' deletes the selecte
      <string name="quiet_hours_haptic_summary">Disable haptic feedback</string>
      <string name="quiet_hours_active_period">Active from <xliff:g id="start">%1$s</xliff:g> to <xliff:g id="end">%2$s</xliff:g></string>
  
@@ -153,24 +153,24 @@ index 0ace372..dc89141 100644
      <string name="quiet_hours_ringer_allow_all">Ring for all callers</string>
      <string name="quiet_hours_ringer_allow_contacts">Ring for all contacts</string>
 diff --git a/res/xml/performance_settings.xml b/res/xml/performance_settings.xml
-index c6064e1..1903c31 100644
+index c6064e12e3..1903c3192b 100644
 --- a/res/xml/performance_settings.xml
 +++ b/res/xml/performance_settings.xml
-@@ -41,6 +41,11 @@
+@@ -40,6 +40,11 @@
+         android:key="perf_system_prefs"
          android:title="@string/accessibility_system_title">
  
-         <PreferenceScreen
++        <PreferenceScreen
 +            android:key="wakelock_blocker"
 +            android:fragment="com.android.settings.cyanogenmod.WakeLockBlocker"
 +            android:title="@string/wakelock_blocker_title" />
 +
-+        <PreferenceScreen
+         <PreferenceScreen
              android:key="processor"
              android:fragment="com.android.settings.cyanogenmod.Processor"
-             android:title="@string/processor_title" />
 diff --git a/res/xml/wakelock_pref.xml b/res/xml/wakelock_pref.xml
 new file mode 100644
-index 0000000..f29dfb0
+index 0000000000..f29dfb0a44
 --- /dev/null
 +++ b/res/xml/wakelock_pref.xml
 @@ -0,0 +1,12 @@
@@ -188,7 +188,7 @@ index 0000000..f29dfb0
 +</PreferenceScreen>
 diff --git a/src/com/android/settings/cyanogenmod/WakeLockBlocker.java b/src/com/android/settings/cyanogenmod/WakeLockBlocker.java
 new file mode 100644
-index 0000000..3000f6b
+index 0000000000..3000f6ba18
 --- /dev/null
 +++ b/src/com/android/settings/cyanogenmod/WakeLockBlocker.java
 @@ -0,0 +1,276 @@
@@ -469,5 +469,5 @@ index 0000000..3000f6b
 +    }
 +}
 -- 
-1.9.5.msysgit.0
+2.14.1
 

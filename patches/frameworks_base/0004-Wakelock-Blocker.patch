@@ -1,7 +1,7 @@
-From cbf584c2d0a689359fda5bf2642ca3033d2beb81 Mon Sep 17 00:00:00 2001
+From b671953f6ba6ce4ca80c2c3693ac9a96befdb308 Mon Sep 17 00:00:00 2001
 From: remittor <remittor@gmail.com>
 Date: Fri, 10 Jun 2016 14:39:38 +0300
-Subject: [PATCH] Wakelock Blocker
+Subject: [PATCH 4/4] Wakelock Blocker
 
 src: http://review.cyanogenmod.org/#/c/109898/
 ---
@@ -12,7 +12,7 @@ src: http://review.cyanogenmod.org/#/c/109898/
  4 files changed, 114 insertions(+), 4 deletions(-)
 
 diff --git a/core/java/android/os/IPowerManager.aidl b/core/java/android/os/IPowerManager.aidl
-index 2274915..7c4ca2a 100644
+index 22749158e6a..7c4ca2a07a6 100644
 --- a/core/java/android/os/IPowerManager.aidl
 +++ b/core/java/android/os/IPowerManager.aidl
 @@ -63,4 +63,7 @@ interface IPowerManager
@@ -24,7 +24,7 @@ index 2274915..7c4ca2a 100644
 +    String getSeenWakeLocks();
  }
 diff --git a/core/java/android/os/PowerManager.java b/core/java/android/os/PowerManager.java
-index b394c71..c69fcee 100644
+index b394c71534e..c69fceeb415 100644
 --- a/core/java/android/os/PowerManager.java
 +++ b/core/java/android/os/PowerManager.java
 @@ -750,6 +750,17 @@ public final class PowerManager {
@@ -46,13 +46,14 @@ index b394c71..c69fcee 100644
       * A wake lock is a mechanism to indicate that your application needs
       * to have the device stay on.
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 2d3e88e..281fb3c 100755
+index 2d3e88e11bb..281fb3caa53 100755
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -2841,6 +2841,18 @@ public final class Settings {
+@@ -2840,6 +2840,18 @@ public final class Settings {
+          */
          public static final String POINTER_SPEED = "pointer_speed";
  
-         /**
++        /**
 +         * Enable blocking wakelock
 +         * @hide
 +         */
@@ -64,12 +65,11 @@ index 2d3e88e..281fb3c 100755
 +         */
 +        public static final String WAKELOCK_BLOCKING_LIST = "wakelock_blocking_list";
 +
-+        /**
+         /**
           * I am the lolrus.
           * <p>
-          * Nonzero values indicate that the user has a bukkit.
 diff --git a/services/java/com/android/server/power/PowerManagerService.java b/services/java/com/android/server/power/PowerManagerService.java
-index 56a4096..3ea30c2 100644
+index 56a4096024c..3ea30c27d60 100644
 --- a/services/java/com/android/server/power/PowerManagerService.java
 +++ b/services/java/com/android/server/power/PowerManagerService.java
 @@ -72,6 +72,9 @@ import java.io.FileDescriptor;
@@ -257,5 +257,5 @@ index 56a4096..3ea30c2 100644
 +
  }
 -- 
-1.9.5.msysgit.0
+2.14.1
 

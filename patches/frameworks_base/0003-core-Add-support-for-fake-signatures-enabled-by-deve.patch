@@ -1,8 +1,8 @@
-From 72555ca2d5bb882a803e5ac58e2e1ca5ffca30fe Mon Sep 17 00:00:00 2001
+From dcf69b4dd2927486dac278ad8e6fc7c1649aee6f Mon Sep 17 00:00:00 2001
 From: remittor <remittor@gmail.com>
 Date: Fri, 10 Jun 2016 13:13:40 +0300
-Subject: [PATCH] core: Add support for fake signatures, enabled by developer
- setting
+Subject: [PATCH 3/4] core: Add support for fake signatures, enabled by
+ developer setting
 
 src: https://gerrit.omnirom.org/#/c/14898/
 ---
@@ -14,13 +14,14 @@ src: https://gerrit.omnirom.org/#/c/14898/
  5 files changed, 42 insertions(+), 2 deletions(-)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 97d7460..2d3e88e 100755
+index 97d74607042..2d3e88e11bb 100755
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -4742,6 +4742,15 @@ public final class Settings {
+@@ -4741,6 +4741,15 @@ public final class Settings {
+         @Deprecated
          public static final String INSTALL_NON_MARKET_APPS = Global.INSTALL_NON_MARKET_APPS;
  
-         /**
++        /**
 +         * Whether applications can fake a signature.
 +         *
 +         * <p>1 = permit apps to fake signature
@@ -29,12 +30,11 @@ index 97d7460..2d3e88e 100755
 +         */
 +        public static final String ALLOW_SIGNATURE_FAKE = "allow_signature_fake";
 +
-+        /**
+         /**
           * Comma-separated list of location providers that activities may access.
           *
-          * @deprecated use {@link #LOCATION_MODE}
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
-index 4494ffe..83fc2624 100644
+index 4494ffedd92..83fc262477f 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
 @@ -1595,6 +1595,13 @@
@@ -52,7 +52,7 @@ index 4494ffe..83fc2624 100644
           {@link android.content.pm.PackageManager#addPackageToPreferred}
           for details. -->
 diff --git a/core/res/res/values-ru/cm_strings.xml b/core/res/res/values-ru/cm_strings.xml
-index 4e3eaba..d5b0c2c 100644
+index 4e3eababd82..d5b0c2cfb66 100644
 --- a/core/res/res/values-ru/cm_strings.xml
 +++ b/core/res/res/values-ru/cm_strings.xml
 @@ -85,6 +85,8 @@
@@ -65,7 +65,7 @@ index 4e3eaba..d5b0c2c 100644
    <string name="permdesc_setKeyguardWallpaper">Приложение сможет изменять обои экрана блокировки устройства.</string>
    <string name="permlab_useHardwareFramework">Взаимодействие с оборудованием</string>
 diff --git a/core/res/res/values/cm_strings.xml b/core/res/res/values/cm_strings.xml
-index d652f55..ec13911 100644
+index d652f5555e2..ec139111063 100644
 --- a/core/res/res/values/cm_strings.xml
 +++ b/core/res/res/values/cm_strings.xml
 @@ -167,6 +167,11 @@
@@ -81,7 +81,7 @@ index d652f55..ec13911 100644
      <string name="permlab_setKeyguardWallpaper">set keyguard wallpaper</string>
      <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 diff --git a/services/java/com/android/server/pm/PackageManagerService.java b/services/java/com/android/server/pm/PackageManagerService.java
-index 07b8d99..bebba4f 100644
+index 07b8d994d47..bebba4f76e6 100644
 --- a/services/java/com/android/server/pm/PackageManagerService.java
 +++ b/services/java/com/android/server/pm/PackageManagerService.java
 @@ -2013,9 +2013,26 @@ public class PackageManagerService extends IPackageManager.Stub {
@@ -114,5 +114,5 @@ index 07b8d99..bebba4f 100644
  
      public boolean isPackageAvailable(String packageName, int userId) {
 -- 
-1.9.5.msysgit.0
+2.14.1
 
