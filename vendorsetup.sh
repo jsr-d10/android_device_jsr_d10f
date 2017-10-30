@@ -26,3 +26,20 @@ rm -f out/target/product/d10f/root/default.prop
 [ -d vendor/cm/proprietary/ ] || mkdir vendor/cm/proprietary/
 [ -f vendor/cm/proprietary/Term.apk ] || wget https://jackpal.github.com/Android-Terminal-Emulator/downloads/Term.apk -O vendor/cm/proprietary/Term.apk
 [ -d vendor/cm/proprietary/lib/ ] || unzip -d vendor/cm/proprietary/ vendor/cm/proprietary/Term.apk lib/*
+
+# Check and set correct javac, javap and java versions
+javac="$(readlink /etc/alternatives/javac)"
+if [ "$javac" != "/usr/lib/jvm/java-7-openjdk-amd64/bin/javac" ]; then
+  echo Updating javac alternative to java-7-openjdk
+  sudo update-alternatives --set javac /usr/lib/jvm/java-7-openjdk-amd64/bin/javac
+fi
+javap="$(readlink /etc/alternatives/javap)"
+if [ "$javap" != "/usr/lib/jvm/java-7-openjdk-amd64/bin/javap" ]; then
+  echo Updating javap alternative to java-7-openjdk
+  sudo update-alternatives --set javap /usr/lib/jvm/java-7-openjdk-amd64/bin/javap
+fi
+java="$(readlink /etc/alternatives/java)"
+if [ "$java" != "/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java" ]; then
+  echo Updating java alternative to java-7-openjdk
+  sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+fi
