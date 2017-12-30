@@ -231,7 +231,12 @@ static int get_partition_number(const char *part_name)
       free(full_part_name);
       return part_number;
     }
-    
+
+    if (!strncmp(part_name, "/devices/platform/msm_hsusb_host/usb", strlen("/devices/platform/msm_hsusb_host/usb"))) {
+        ERROR("%s: %s is the USB host device, so returning 0\n", __func__, part_name);
+        return 0;
+    }
+
     ERROR("%s: Should not reach here!\n", __func__);
     return -4;
 }
