@@ -562,12 +562,15 @@ int process_fstab(const char *fstab_name, const int fstab_type, const int fstab_
         counter++;
     }
 
-    load_storage_config_prop();
-    property_get("ro.boot.swap_sdcc", config, "");
-    sdcc_config = atoi(config);
-    property_get("persist.storages.configuration", config, "");
-    storage_config = atoi(config);
-    ERROR("storage_config=%d, sdcc_config=%d, '%s'\n", storage_config, sdcc_config, config);
+    if (fstab_action == FSTAB_ACTION_UPDATE) {
+        ERROR("%s: Loading storages configuration", __func__);
+        load_storage_config_prop();
+        property_get("ro.boot.swap_sdcc", config, "");
+        sdcc_config = atoi(config);
+        property_get("persist.storages.configuration", config, "");
+        storage_config = atoi(config);
+        ERROR("storage_config=%d, sdcc_config=%d, '%s'\n", storage_config, sdcc_config, config);
+    }
 
     errno = 0;
     if (fstab_action == FSTAB_ACTION_GENERATE) {
@@ -646,6 +649,7 @@ int main(int nargs, char **args)
     } else {
         ERROR("%s: invalid arguments (nargs=%d, args[0]=%s, args[1]=%s, args[2]=%s, args[3]=%s\n", __func__, nargs, args[0], args[1], args[2], args[3]);
     }
-    set_storage_props();
+    if (fstab_action == FSTAB_ACTION_UPDATE)
+        set_storage_props();
     return ret;
 }
