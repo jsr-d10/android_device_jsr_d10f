@@ -22,7 +22,12 @@
 #define STORAGES_CONFIGURATION_CLASSIC   "0"
 #define STORAGES_CONFIGURATION_INVERTED  "1"
 #define STORAGES_CONFIGURATION_DATAMEDIA "2"
+#define BOOT_PROPERTY_SDCC_CONFIGURATION_NAME "ro.boot.swap_sdcc"
+#define SDCC_CONFIGURATION_NORMAL   "0"
+#define SDCC_CONFIGURATION_INVERTED "1"
+#define SDCC_CONFIGURATION_ISOLATED "2"
 #define SERVICE_VOLD "vold"
+#define USBMSC_PATH "/dev/block/platform/msm_sdcc.1/by-name/usbmsc"
 
 #define STORAGE_XML_PATH "/data/system/storage.xml"
 #define STORAGE_XML_TMP_PATH "/data/system/storage.tmp"
@@ -143,9 +148,24 @@ void set_storage_props(void)
 {
 	char value[PROP_VALUE_MAX+1];
 	int isDatamedia = FALSE;
-	int rc = 0;
+	int rc = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value, "");
+	if (rc == 0) { // If the storages configuration property is unspecified
+		ERROR("Storages configuration is undefined (" PERSISTENT_PROPERTY_CONFIGURATION_NAME
+		      " == %s), trying to guess best default value\n", value);
+		if (access(USBMSC_PATH, F_OK) == 0) { // Check for usbmsc partition in primary storage
+			rc = property_get(BOOT_PROPERTY_SDCC_CONFIGURATION_NAME, value, "");
+			if (rc && !strcmp(value, SDCC_CONFIGURATION_NORMAL)) { // usbmsc is present, so check SDCC config
+				strncpy(value, STORAGES_CONFIGURATION_CLASSIC, PROP_VALUE_MAX);
+			} else {
+				strncpy(value, STORAGES_CONFIGURATION_INVERTED, PROP_VALUE_MAX);
+			}
+		} else { // usbmsc is not present, so default storages configuration will always be datamedia
+				strncpy(value, STORAGES_CONFIGURATION_DATAMEDIA, PROP_VALUE_MAX);
+		}
+		rc = strlen(value);
+		property_set(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value);
+	}
 
-	rc = property_get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, value, "");
 	if (rc && !strcmp(value, STORAGES_CONFIGURATION_DATAMEDIA)) { // if datamedia
 		ERROR("Got datamedia storage configuration (" PERSISTENT_PROPERTY_CONFIGURATION_NAME " == %s)\n", value);
 		isDatamedia = TRUE;
