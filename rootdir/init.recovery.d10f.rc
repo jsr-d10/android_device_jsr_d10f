@@ -2,8 +2,6 @@ on charger
     trigger late-init
 
 on fs
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /etc/recovery.fstab twrp generate
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.recovery.d10f recovery generate
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /etc/recovery.fstab twrp update
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.recovery.d10f recovery update
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /etc/twrp.fstab twrp
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f recovery
 

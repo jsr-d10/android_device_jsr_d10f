@@ -46,9 +46,8 @@ on init
     export LD_SHIM_LIBS /system/lib/hw/camera.vendor.msm8226.so|libboringssl-compat.so:/system/vendor/lib/libqomx_jpegenc.so|libboringssl-compat.so:/system/lib/libcrypto.so|libboringssl-compat.so
 #    export LD_PRELOAD /system/lib/libboringssl-compat.so
 on fs
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular generate
     mount_all fstab.d10f
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular update
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular
     swapon_all fstab.d10f
 
     restorecon_recursive /persist
