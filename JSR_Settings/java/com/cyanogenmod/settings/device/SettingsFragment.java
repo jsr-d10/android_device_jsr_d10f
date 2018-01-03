@@ -9,6 +9,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.util.Log;
@@ -23,6 +24,7 @@ import java.nio.charset.Charset;
 public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener, OnPreferenceClickListener {
 
     private static final String TAG = "JSR_Settings";
+    private static final String BTN_FUNC_CAT = "btn_func_cat";
     private static final String BTN_FUNC_APP = "btn_func_app";
     private static final String BTN_FUNC_APP2 = "btn_func_app2";
     private static final String PERSISTENT_PROPERTY_CONFIGURATION_NAME = "persist.storages.configuration";
@@ -116,7 +118,23 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         btn_func_app2 = (EditTextPreferenceEx)findPreference(BTN_FUNC_APP2);
         btn_func_app2.setOnPreferenceChangeListener(this);
 
-        btn_g_cal = (Preference)findPreference(BTN_G_CAL);
+        // This will not work on MIUI anyway, so let's just hide it
+        String current_rom = SystemProperties.get("ro.ota.current_rom", "");
+        Log.d("S-trace", "current_rom is '" + current_rom + "'");
+        if (current_rom.toLowerCase().contains("miui")) {
+            Log.d("S-trace", "going to removing prefs");
+            PreferenceGroup preferenceGroup = (PreferenceGroup) findPreference(BTN_FUNC_CAT);
+            if (preferenceGroup != null) {
+                Log.d("S-trace", "REALLY removing prefs");
+                preferenceGroup.removePreference(btn_func_app);
+                preferenceGroup.removePreference(btn_func_app2);
+                getPreferenceScreen().removePreference(preferenceGroup);
+            }
+        } else {
+            Log.d("S-trace", "NOT removing prefs");
+        }
+
+        btn_g_cal = findPreference(BTN_G_CAL);
         btn_g_cal.setOnPreferenceClickListener(this);
 
         swt_spkr = (SwitchPreference)findPreference(SWT_SPKR);

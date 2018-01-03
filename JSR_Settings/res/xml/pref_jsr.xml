@@ -13,6 +13,7 @@
         </ListPreference>
     </PreferenceCategory>
     <PreferenceCategory
+        android:key="btn_func_cat"
         android:title="@string/btn_func_category">
         <com.cyanogenmod.settings.device.EditTextPreferenceEx
             android:key="btn_func_app"
