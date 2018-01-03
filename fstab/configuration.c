@@ -71,11 +71,11 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 
 	int scanned_size=0, fields=0, iversion=0, buffer_size=0, printed_bytes, buffer_free_bytes=0;
 	char primaryStorageUuid[64+1], forceAdoptable[64+1];
-	char *data=NULL, *buffer=NULL, *rest_of_config=NULL;
+	char *data=NULL, *rest_of_config=NULL;
 
 	buffer_size=config_size + strlen(STORAGE_XML_PRIMARY_PHYSICAL_UUID_TOKEN); // needed if migrating from datamedia to classic
-	buffer = data = (char *) calloc(1, buffer_size);
-	if (buffer == NULL) {
+	data = (char *) calloc(1, buffer_size);
+	if (data == NULL) {
 		ERROR("Out of memory while allocating %d bytes\n", buffer_size);
 		return;
 	}
@@ -88,7 +88,7 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 		                "<volumes version=\"%d\" forceAdoptable=\"%64[^\"]\">\n%n",
 		                &iversion, forceAdoptable, &scanned_size);
 		if (fields == 2) {
-			free (buffer);
+			free (data);
 			return; // nothing to do here!
 		}
 
@@ -98,7 +98,7 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 		                &iversion, primaryStorageUuid, forceAdoptable, &scanned_size);
 		if (fields != 3) {
 			ERROR("Storage config xml \"%s\" is werid - got %d fields (want 3)!\n", STORAGE_XML_PATH, fields);
-			free (buffer);
+			free (data);
 			return;
 		}
 		printed_bytes=sprintf(data, STORAGE_XML_CONFIG_DATAMEDIA_FMT, iversion, forceAdoptable);
@@ -109,7 +109,7 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 		                "<volumes version=\"%d\" primaryStorageUuid=\"%64[^\"]\" forceAdoptable=\"%64[^\"]\">\n%n",
 		                &iversion, primaryStorageUuid, forceAdoptable, &scanned_size);
 		if (fields == 3) {
-			free (buffer);
+			free (data);
 			return; // nothing to do here!
 		}
 
@@ -119,7 +119,7 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 		                &iversion, forceAdoptable, &scanned_size);
 		if (fields != 2) {
 			ERROR("Storage config xml \"%s\" is werid - got %d fields (want 2)!\n", STORAGE_XML_PATH, fields);
-			free (buffer);
+			free (data);
 			return; // nothing to do here!
 		}
 		buffer_free_bytes=buffer_size - strlen(STORAGE_XML_HEADER) - scanned_size
@@ -130,18 +130,18 @@ void update_xml_configuration(char *xml_config, off_t config_size, int isDatamed
 	// just copy rest of config data
 	rest_of_config=xml_config + strlen(STORAGE_XML_HEADER) + scanned_size;
 	strncpy(data, rest_of_config, buffer_free_bytes);
-	ERROR("Going to write '%s' into config %s\n", buffer, STORAGE_XML_PATH);
+	ERROR("Going to write '%s' into config %s\n", data, STORAGE_XML_PATH);
 	ERROR("Updating %s\n", STORAGE_XML_PATH);
 	munmap(xml_config, config_size);
 	FILE *storage_config = fopen(STORAGE_XML_PATH, "w");
 	if (storage_config == NULL) {
 		ERROR("Unable to open %s for writing (errno=%d: %s)\n", STORAGE_XML_PATH, errno, strerror(errno));
-		free(buffer);
+		free(data);
 		return;
 	}
-	fwrite(buffer, strlen(buffer)-1, 1, storage_config);
+	fwrite(data, strlen(data)-1, 1, storage_config);
 	fclose(storage_config);
-	free (buffer);
+	free (data);
 }
 
 void set_storage_props(void)
