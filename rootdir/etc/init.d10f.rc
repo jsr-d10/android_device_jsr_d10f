@@ -46,9 +46,8 @@ on init
 
 on fs
     restorecon_recursive /dev
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular generate
     mount_all /fstab.d10f
-    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular update
+    exec u:object_r:init_exec:s0 root root -- /sbin/fstab /fstab.d10f regular
     restorecon_recursive /persist
 
 on early-boot

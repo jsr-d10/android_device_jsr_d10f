@@ -216,6 +216,7 @@ PRODUCT_PACKAGES += OpenDelta
 PRODUCT_PACKAGES += \
     init.d10f.rc \
     init.d10f.usb.rc \
+    fstab.d10f \
     ueventd.d10f.rc
 
 # Sensors
