@@ -1,0 +1,26 @@
+From ed3460c4cf74be0e43d175b5d79fffa4c9ba98c4 Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 19 Jun 2017 16:09:25 +0300
+Subject: [PATCH] [DEBUG] linker: Log "CANNOT LINK EXECUTABLE" errors to logcat
+ too
+
+Change-Id: Ib6b177e2d8eb6360d690dac646a37ec76c719642
+---
+ linker/linker.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/linker/linker.cpp b/linker/linker.cpp
+index 2573c8906..3ad65feb4 100644
+--- a/linker/linker.cpp
++++ b/linker/linker.cpp
+@@ -3307,6 +3307,7 @@ static ElfW(Addr) __linker_init_post_relocation(KernelArgumentBlock& args, ElfW(
+ 
+   if (!si->prelink_image()) {
+     __libc_format_fd(2, "CANNOT LINK EXECUTABLE: %s\n", linker_get_error_buffer());
++    __libc_format_log(ANDROID_LOG_FATAL, "linker", "%s", linker_get_error_buffer());
+     exit(EXIT_FAILURE);
+   }
+ 
+-- 
+2.14.1
+
