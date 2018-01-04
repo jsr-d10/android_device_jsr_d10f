@@ -44,7 +44,7 @@ index 4678364..8aaf397 100644
 +               unsigned int iter=0;
 +               bool servicePartition=false;
 +                for (iter=0; iter < (sizeof(kServicePartitionNames)/sizeof(kServicePartitionNames[0])); iter++) {
-+                    if(!strcasecmp(partName, kServicePartitionNames[iter])) {
++                    if(!strncasecmp(kServicePartitionNames[iter], partName, strlen(kServicePartitionNames[iter]))) {
 +                        servicePartition=true;
 +                        break;
 +                    }
