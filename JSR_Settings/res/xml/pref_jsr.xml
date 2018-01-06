@@ -1,66 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/storages_category">
+    <PreferenceCategory android:title="@string/storages_category">
         <ListPreference
-            android:key="main_storage"
-            android:title="@string/main_storage_title"
+            android:defaultValue="int"
             android:entries="@array/main_storage_names"
             android:entryValues="@array/main_storage_values"
-            android:defaultValue="int"
+            android:key="main_storage"
             android:summary="%s"
-            >
-        </ListPreference>
+            android:title="@string/main_storage_title" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="btn_func_cat"
         android:title="@string/btn_func_category">
         <com.cyanogenmod.settings.device.EditTextPreferenceEx
-            android:key="btn_func_app"
-            android:title="@string/btn_func_app"
+            android:defaultValue=""
             android:dialogTitle="@string/btn_func_app"
             android:hint="@string/btn_func_hint"
-            android:singleLine="true"
             android:inputType="text"
-            android:defaultValue=""
+            android:key="btn_func_app"
+            android:singleLine="true"
             android:summary="%s"
-            />
+            android:title="@string/btn_func_app" />
         <com.cyanogenmod.settings.device.EditTextPreferenceEx
-            android:key="btn_func_app2"
-            android:title="@string/btn_func_app2"
+            android:defaultValue=""
             android:dialogTitle="@string/btn_func_app2"
             android:hint="@string/btn_func_hint2"
-            android:singleLine="true"
             android:inputType="text"
-            android:defaultValue=""
+            android:key="btn_func_app2"
+            android:singleLine="true"
             android:summary="%s"
-            />
+            android:title="@string/btn_func_app2" />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="@string/cal_category">
+    <PreferenceCategory android:title="@string/cal_category">
         <Preference
-            android:key="btn_g_cal"
-            android:title="@string/btn_g_cal"
+            android:key="button_g_sensor_calibration"
             android:summary="@string/btn_g_cal_hint"
-            />
+            android:title="@string/btn_g_cal" />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="@string/noise_category">
+    <PreferenceCategory android:title="@string/noise_category">
         <SwitchPreference
-            android:key="swt_spkr"
-            android:title="@string/swt_spkr"
-            />
+            android:key="switch_anc_speaker"
+            android:title="@string/swt_spkr" />
         <SwitchPreference
-            android:key="swt_call"
-            android:title="@string/swt_call"
-            />
+            android:key="switch_anc_call"
+            android:title="@string/swt_call" />
         <SwitchPreference
-            android:key="swt_voice_rec"
-            android:title="@string/swt_voice_rec"
-            />
+            android:key="switch_anc_voice_record"
+            android:title="@string/swt_voice_rec" />
         <SwitchPreference
-            android:key="swt_audio_rec"
-            android:title="@string/swt_audio_rec"
-            />
+            android:key="switch_anc_audio_record"
+            android:title="@string/swt_audio_rec" />
     </PreferenceCategory>
 </PreferenceScreen>
