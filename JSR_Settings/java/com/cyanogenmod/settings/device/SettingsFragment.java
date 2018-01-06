@@ -2,198 +2,228 @@ package com.cyanogenmod.settings.device;
 
 import android.content.ComponentName;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemProperties;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceFragment;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.FileOutputStream;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 /**
  * Created by prodoomman on 19.02.15.
+ * Implements functionality for EditTextPreference
  */
-public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener, OnPreferenceClickListener {
+public class SettingsFragment extends PreferenceFragment
+        implements Preference.OnPreferenceChangeListener, OnPreferenceClickListener {
 
     private static final String TAG = "JSR_Settings";
-    private static final String BTN_FUNC_CAT = "btn_func_cat";
-    private static final String BTN_FUNC_APP = "btn_func_app";
-    private static final String BTN_FUNC_APP2 = "btn_func_app2";
-    private static final String PERSISTENT_PROPERTY_CONFIGURATION_NAME = "persist.storages.configuration";
-    private static final String USBMSC_PRESENT_PROPERTY_NAME = "ro.usbmsc.present";
-    private static final String STORAGES_CONFIGURATION_CLASSIC = "0" ;
-    private static final String STORAGES_CONFIGURATION_INVERTED = "1" ;
-    private static final String STORAGES_CONFIGURATION_DATAMEDIA = "2" ;
-    private static final String BTN_G_CAL = "btn_g_cal";
-    private static final String SWT_SPKR = "swt_spkr";
-    private static final String SWT_CALL = "swt_call";
-    private static final String SWT_VOICE_REC = "swt_voice_rec";
-    private static final String SWT_AUDIO_REC = "swt_audio_rec";
+    private static final String FUNC_CATEGORY_KEY = "btn_func_cat";
+    private static final String BTN_FUNC_APP_KEY = "btn_func_app";
+    private static final String BTN_FUNC_APP2_KEY = "btn_func_app2";
 
-    EditTextPreferenceEx btn_func_app;
-    EditTextPreferenceEx btn_func_app2;
-    Preference btn_g_cal;
-    SwitchPreference swt_spkr;
-    SwitchPreference swt_call;
-    SwitchPreference swt_voice_rec;
-    SwitchPreference swt_audio_rec;
+    private static final String STORAGES_CONFIGURATION_CLASSIC = "0";
+    private static final String STORAGES_CONFIGURATION_INVERTED = "1";
+    private static final String STORAGES_CONFIGURATION_DATAMEDIA = "2";
 
-    private class SysfsValue {
-        private String fileName;
-        private String value;
+    private static final String PREFERENCE_MAIN_STORAGE_KEY = "main_storage";
+    private static final String PREFERENCE_G_SENSOR_CALIBRATION_KEY = "button_g_sensor_calibration";
+    private static final String SWITCH_ANC_SPEAKER_KEY = "switch_anc_speaker";
+    private static final String SWITCH_ANC_CALL_KEY = "switch_anc_call";
+    private static final String SWITCH_ANC_VOICE_RECORD_KEY = "switch_anc_voice_record";
+    private static final String SWITCH_ANC_AUDIO_RECORD_KEY = "switch_anc_audio_record";
 
-        private SysfsValue(String fileName, String value) {
-            this.fileName = fileName;
-            this.value = value;
-        }
+    private static final String PROPERTY_CONFIGURATION_NAME = "persist.storages.configuration";
+    private static final String PROPERTY_EMMC_HAS_USBMSC_NAME = "ro.emmc.has.usbmsc";
+    private static final String PROPERTY_SD_HAS_USBMSC_NAME = "ro.sd.has.usbmsc";
+    private static final String PROPERTY_SD_HAS_PLAIN_PART_NAME = "ro.sd.has.plain_part";
+    private static final String PROPERTY_ANC_SPEAKER_NAME = "persist.audio.fluence.speaker";
+    private static final String PROPERTY_ANC_CALL_NAME = "persist.audio.fluence.voicecall";
+    private static final String PROPERTY_ANC_VOICE_REC_NAME = "persist.audio.fluence.voicerec";
+    private static final String PROPERTY_ANC_AUDIO_REC_NAME = "persist.audio.fluence.audiorec";
 
-        public String getFileName() {
-            return fileName;
-        }
+    private String currentRom;
+    private boolean emmcHasUsbmsc;
+    private boolean sdHasUsbmsc;
+    private boolean sdHasPlainPart;
+    private boolean ancSpeakerEnabled;
+    private boolean ancCallEnabled;
+    private boolean ancVoiceRecordEnabled;
+    private boolean ancAudioRecordEnabled;
+    private String[] storageConfigurationEntries;
+    private String[] storageConfigurationEntryValues;
 
-        public String getValue() {
-            return value;
-        }
+    private void readProperties() {
+        emmcHasUsbmsc = SystemProperties.getBoolean(PROPERTY_EMMC_HAS_USBMSC_NAME, false);
+        sdHasUsbmsc = SystemProperties.getBoolean(PROPERTY_SD_HAS_USBMSC_NAME, false);
+        sdHasPlainPart = SystemProperties.getBoolean(PROPERTY_SD_HAS_PLAIN_PART_NAME, false);
+        currentRom = SystemProperties.get("ro.ota.current_rom", "");
+        ancSpeakerEnabled = SystemProperties.getBoolean(PROPERTY_ANC_SPEAKER_NAME, false);
+        ancCallEnabled = SystemProperties.getBoolean(PROPERTY_ANC_CALL_NAME, false);
+        ancVoiceRecordEnabled = SystemProperties.getBoolean(PROPERTY_ANC_VOICE_REC_NAME, false);
+        ancAudioRecordEnabled = SystemProperties.getBoolean(PROPERTY_ANC_AUDIO_REC_NAME, false);
     }
 
-    class SysfsWriteTask extends AsyncTask<SysfsValue, Void, Integer> {
+    private String prepareStoragesConfiguration() {
+        ArrayList<String> entries = new ArrayList<>();
+        ArrayList<String> values = new ArrayList<>();
 
-        @Override
-        protected Integer doInBackground(SysfsValue... params) {
-            try {
-                FileOutputStream fos = new FileOutputStream(params[0].getFileName());
-                fos.write(params[0].getValue().getBytes(Charset.forName("UTF-8")));
-                fos.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return -1;
+        String configuration = SystemProperties.get(
+                PROPERTY_CONFIGURATION_NAME,
+                STORAGES_CONFIGURATION_CLASSIC
+        );
+
+        // Datamedia is the only always possible configuration
+        entries.add(getString(R.string.storage_datamedia));
+        values.add(STORAGES_CONFIGURATION_DATAMEDIA);
+
+        if (emmcHasUsbmsc) {
+            entries.add(getString(R.string.storage_usbmsc));
+            values.add(STORAGES_CONFIGURATION_CLASSIC);
+        } else {
+            if (STORAGES_CONFIGURATION_CLASSIC.equals(configuration)) {
+                if (sdHasPlainPart || sdHasUsbmsc)
+                    configuration = STORAGES_CONFIGURATION_INVERTED;
+                else
+                    configuration = STORAGES_CONFIGURATION_DATAMEDIA;
             }
-            return 0;
         }
 
-        @Override
-        protected void onPostExecute(Integer result) {
-            if(0 != result) {
-                Toast.makeText(getActivity(), R.string.fail, Toast.LENGTH_SHORT).show();
+        if (sdHasUsbmsc || sdHasPlainPart) {
+            entries.add(getString(R.string.storage_sdcard));
+            values.add(STORAGES_CONFIGURATION_INVERTED);
+        } else {
+            if (STORAGES_CONFIGURATION_INVERTED.equals(configuration)) {
+                if (emmcHasUsbmsc)
+                    configuration = STORAGES_CONFIGURATION_CLASSIC;
+                else
+                    configuration = STORAGES_CONFIGURATION_DATAMEDIA;
             }
         }
+
+        storageConfigurationEntries = new String[entries.size()];
+        entries.toArray(storageConfigurationEntries);
+        storageConfigurationEntryValues = new String[values.size()];
+        values.toArray(storageConfigurationEntryValues);
+
+        return configuration;
+    }
+
+    private void showToast(int text) {
+        Toast.makeText(getActivity(), text, Toast.LENGTH_LONG).show();
     }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref_jsr);
-        ListPreference main_storage;
-        String configuration;
-        boolean usbmscPresent = SystemProperties.getBoolean(USBMSC_PRESENT_PROPERTY_NAME, true);
-        if (usbmscPresent) {
-            main_storage=(ListPreference)findPreference("main_storage");
-            main_storage.setEntries(new String[]{getString(R.string.storage_datamedia), getString(R.string.storage_usbmsc), getString(R.string.storage_sdcard)});
-            main_storage.setEntryValues(new String[]{STORAGES_CONFIGURATION_DATAMEDIA, STORAGES_CONFIGURATION_CLASSIC, STORAGES_CONFIGURATION_INVERTED});
-            configuration = SystemProperties.get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, STORAGES_CONFIGURATION_CLASSIC);
-        } else {
-            main_storage=(ListPreference)findPreference("main_storage");
-            main_storage.setEntries(new String[]{getString(R.string.storage_datamedia), getString(R.string.storage_sdcard)});
-            main_storage.setEntryValues(new String[]{STORAGES_CONFIGURATION_DATAMEDIA, STORAGES_CONFIGURATION_INVERTED});
-            configuration = SystemProperties.get(PERSISTENT_PROPERTY_CONFIGURATION_NAME, STORAGES_CONFIGURATION_DATAMEDIA);
-            if (configuration == STORAGES_CONFIGURATION_CLASSIC) {
-                configuration = STORAGES_CONFIGURATION_DATAMEDIA;
-            }
-        }
 
+        readProperties();
+
+        String configuration = prepareStoragesConfiguration();
+        ListPreference main_storage = (ListPreference) findPreference(PREFERENCE_MAIN_STORAGE_KEY);
         main_storage.setOnPreferenceChangeListener(this);
-
+        main_storage.setEntries(storageConfigurationEntries);
+        main_storage.setEntryValues(storageConfigurationEntryValues);
         main_storage.setValue(configuration);
 
-        btn_func_app = (EditTextPreferenceEx)findPreference(BTN_FUNC_APP);
+        EditTextPreferenceEx btn_func_app;
+        btn_func_app = (EditTextPreferenceEx) findPreference(BTN_FUNC_APP_KEY);
         btn_func_app.setOnPreferenceChangeListener(this);
 
-        btn_func_app2 = (EditTextPreferenceEx)findPreference(BTN_FUNC_APP2);
+        EditTextPreferenceEx btn_func_app2;
+        btn_func_app2 = (EditTextPreferenceEx) findPreference(BTN_FUNC_APP2_KEY);
         btn_func_app2.setOnPreferenceChangeListener(this);
 
         // This will not work on MIUI anyway, so let's just hide it
-        String current_rom = SystemProperties.get("ro.ota.current_rom", "");
-        Log.d("S-trace", "current_rom is '" + current_rom + "'");
-        if (current_rom.toLowerCase().contains("miui")) {
-            Log.d("S-trace", "going to removing prefs");
-            PreferenceGroup preferenceGroup = (PreferenceGroup) findPreference(BTN_FUNC_CAT);
+        if (currentRom.toLowerCase().contains("miui")) {
+            PreferenceGroup preferenceGroup = (PreferenceGroup) findPreference(FUNC_CATEGORY_KEY);
             if (preferenceGroup != null) {
-                Log.d("S-trace", "REALLY removing prefs");
                 preferenceGroup.removePreference(btn_func_app);
                 preferenceGroup.removePreference(btn_func_app2);
                 getPreferenceScreen().removePreference(preferenceGroup);
             }
-        } else {
-            Log.d("S-trace", "NOT removing prefs");
         }
 
-        btn_g_cal = findPreference(BTN_G_CAL);
-        btn_g_cal.setOnPreferenceClickListener(this);
+        Preference buttonGSensorCalibration = findPreference(PREFERENCE_G_SENSOR_CALIBRATION_KEY);
+        buttonGSensorCalibration.setOnPreferenceClickListener(this);
 
-        swt_spkr = (SwitchPreference)findPreference(SWT_SPKR);
-        swt_call = (SwitchPreference)findPreference(SWT_CALL);
-        swt_voice_rec = (SwitchPreference)findPreference(SWT_VOICE_REC);
-        swt_audio_rec = (SwitchPreference)findPreference(SWT_AUDIO_REC);
-        swt_spkr.setOnPreferenceChangeListener(this);
-        swt_call.setOnPreferenceChangeListener(this);
-        swt_voice_rec.setOnPreferenceChangeListener(this);
-        swt_audio_rec.setOnPreferenceChangeListener(this);
-        swt_spkr.setChecked(SystemProperties.getBoolean("persist.audio.fluence.speaker", false));
-        swt_call.setChecked(SystemProperties.getBoolean("persist.audio.fluence.voicecall", false));
-        swt_voice_rec.setChecked(SystemProperties.getBoolean("persist.audio.fluence.voicerec", false));
-        swt_audio_rec.setChecked(SystemProperties.getBoolean("persist.audio.fluence.audiorec", false));
+        SwitchPreference switchAncSpeaker;
+        switchAncSpeaker = (SwitchPreference) findPreference(SWITCH_ANC_SPEAKER_KEY);
+        switchAncSpeaker.setOnPreferenceChangeListener(this);
+        switchAncSpeaker.setChecked(ancSpeakerEnabled);
+
+        SwitchPreference switchAncCall;
+        switchAncCall = (SwitchPreference) findPreference(SWITCH_ANC_CALL_KEY);
+        switchAncCall.setOnPreferenceChangeListener(this);
+        switchAncCall.setChecked(ancCallEnabled);
+
+        SwitchPreference switchAncVoiceRecord;
+        switchAncVoiceRecord = (SwitchPreference) findPreference(SWITCH_ANC_VOICE_RECORD_KEY);
+        switchAncVoiceRecord.setOnPreferenceChangeListener(this);
+        switchAncVoiceRecord.setChecked(ancVoiceRecordEnabled);
+
+        SwitchPreference switchAncAudioRecord;
+        switchAncAudioRecord = (SwitchPreference) findPreference(SWITCH_ANC_AUDIO_RECORD_KEY);
+        switchAncAudioRecord.setOnPreferenceChangeListener(this);
+        switchAncAudioRecord.setChecked(ancAudioRecordEnabled);
     }
 
     @Override
-    public boolean onPreferenceChange(Preference preference, Object newValue)
-    {
-        if (preference.getKey().equals("main_storage")) {
-            SystemProperties.set(PERSISTENT_PROPERTY_CONFIGURATION_NAME, (String)newValue);
-            Toast.makeText(getActivity(), R.string.reboot_needed, Toast.LENGTH_LONG).show();
-        }
-        if (preference.getKey().equals(BTN_FUNC_APP)) {
-            Settings.System.putString(getActivity().getContentResolver(), preference.getKey(), (String)newValue);
-        }
-        if (preference.getKey().equals(BTN_FUNC_APP2)) {
-            Settings.System.putString(getActivity().getContentResolver(), preference.getKey(), (String)newValue);
-        }
-        if (preference.getKey().equals(SWT_SPKR)) {
-            SystemProperties.set("persist.audio.fluence.speaker", newValue.toString());
-            Toast.makeText(getActivity(), R.string.reboot_needed, Toast.LENGTH_LONG).show();
-        }
-        if (preference.getKey().equals(SWT_CALL)) {
-            SystemProperties.set("persist.audio.fluence.voicecall", newValue.toString());
-            Toast.makeText(getActivity(), R.string.reboot_needed, Toast.LENGTH_LONG).show();
-        }
-        if (preference.getKey().equals(SWT_VOICE_REC)) {
-            SystemProperties.set("persist.audio.fluence.voicerec", newValue.toString());
-            Toast.makeText(getActivity(), R.string.reboot_needed, Toast.LENGTH_LONG).show();
-        }
-        if (preference.getKey().equals(SWT_AUDIO_REC)) {
-            SystemProperties.set("persist.audio.fluence.audiorec", newValue.toString());
-            Toast.makeText(getActivity(), R.string.reboot_needed, Toast.LENGTH_LONG).show();
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        String preferenceKey = preference.getKey();
+        switch (preferenceKey) {
+            case PREFERENCE_MAIN_STORAGE_KEY:
+                SystemProperties.set(PROPERTY_CONFIGURATION_NAME, (String) newValue);
+                showToast(R.string.reboot_needed);
+                break;
+            case BTN_FUNC_APP_KEY:
+                Settings.System.putString(getActivity().getContentResolver(),
+                        preference.getKey(), (String) newValue);
+                break;
+            case BTN_FUNC_APP2_KEY:
+                Settings.System.putString(getActivity().getContentResolver(),
+                        preference.getKey(), (String) newValue);
+                break;
+            case SWITCH_ANC_SPEAKER_KEY:
+                SystemProperties.set(PROPERTY_ANC_SPEAKER_NAME, newValue.toString());
+                showToast(R.string.reboot_needed);
+                break;
+            case SWITCH_ANC_CALL_KEY:
+                SystemProperties.set(PROPERTY_ANC_CALL_NAME, newValue.toString());
+                showToast(R.string.reboot_needed);
+                break;
+            case SWITCH_ANC_VOICE_RECORD_KEY:
+                SystemProperties.set(PROPERTY_ANC_VOICE_REC_NAME, newValue.toString());
+                showToast(R.string.reboot_needed);
+                break;
+            case SWITCH_ANC_AUDIO_RECORD_KEY:
+                SystemProperties.set(PROPERTY_ANC_AUDIO_REC_NAME, newValue.toString());
+                showToast(R.string.reboot_needed);
+                break;
         }
         return true;
     }
 
     @Override
     public boolean onPreferenceClick(Preference preference) {
-        if (preference.getKey().equals(BTN_G_CAL)) {
+        if (PREFERENCE_G_SENSOR_CALIBRATION_KEY.equals(preference.getKey())) {
             try {
-                Intent callGCal = new Intent();
-                callGCal.setComponent(new ComponentName("com.qualcomm.sensors.qsensortest",
-                                                        "com.qualcomm.sensors.qsensortest.TabControl"));
-                startActivity(callGCal);
+                Intent intent = new Intent();
+                ComponentName component = new ComponentName(
+                        "com.qualcomm.sensors.qsensortest",
+                        "com.qualcomm.sensors.qsensortest.TabControl"
+                );
+                intent.setComponent(component);
+                startActivity(intent);
             } catch (Exception ex) {
                 Log.e(TAG, "Failed to start GravityCalibrationActivity: " + ex);
-                Toast.makeText(getActivity(), R.string.btn_g_cal_failure, Toast.LENGTH_LONG).show();
+                showToast(R.string.btn_g_cal_failure);
             }
         }
         return true;
