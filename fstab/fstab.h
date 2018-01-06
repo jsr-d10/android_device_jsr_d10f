@@ -71,6 +71,9 @@ enum sdcc_configs
 };
 
 #define STORAGE_CONFIG_PROP "persist.storages.configuration"
+#define EMMC_HAS_USBMSC_PROP "ro.emmc.has.usbmsc"
+#define SD_HAS_USBMSC_PROP "ro.sd.has.usbmsc"
+#define SD_HAS_PLAIN_PART_PROP "ro.sd.has.plain_part"
 #define PERSISTENT_PROPERTY_DIR  "/data/property"
 
 #endif //_INIT_FSTAB_H
