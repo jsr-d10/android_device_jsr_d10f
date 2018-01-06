@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/storages_category">
+    <PreferenceCategory
+        android:title="@string/storages_category"
+        android:key="main_storage_category"
+        >
         <ListPreference
             android:defaultValue="int"
             android:entries="@array/main_storage_names"

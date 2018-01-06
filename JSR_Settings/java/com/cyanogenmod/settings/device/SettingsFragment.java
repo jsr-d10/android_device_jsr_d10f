@@ -32,6 +32,7 @@ public class SettingsFragment extends PreferenceFragment
     private static final String STORAGES_CONFIGURATION_INVERTED = "1";
     private static final String STORAGES_CONFIGURATION_DATAMEDIA = "2";
 
+    private static final String MAIN_STORAGE_CATEGORY = "main_storage_category";
     private static final String PREFERENCE_MAIN_STORAGE_KEY = "main_storage";
     private static final String PREFERENCE_G_SENSOR_CALIBRATION_KEY = "button_g_sensor_calibration";
     private static final String SWITCH_ANC_SPEAKER_KEY = "switch_anc_speaker";
@@ -131,6 +132,16 @@ public class SettingsFragment extends PreferenceFragment
         main_storage.setEntries(storageConfigurationEntries);
         main_storage.setEntryValues(storageConfigurationEntryValues);
         main_storage.setValue(configuration);
+        int possibleStoragesConfigurations = storageConfigurationEntries.length;
+        Log.d("S-trace", "possibleStoragesConfigurations=" + possibleStoragesConfigurations);
+        if (possibleStoragesConfigurations == 1) {
+            PreferenceGroup preferenceGroup;
+            preferenceGroup = (PreferenceGroup) findPreference(MAIN_STORAGE_CATEGORY);
+            if (preferenceGroup != null) {
+                preferenceGroup.removePreference(main_storage);
+                getPreferenceScreen().removePreference(preferenceGroup);
+            }
+        }
 
         EditTextPreferenceEx btn_func_app;
         btn_func_app = (EditTextPreferenceEx) findPreference(BTN_FUNC_APP_KEY);
