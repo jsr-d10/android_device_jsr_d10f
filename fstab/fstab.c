@@ -30,6 +30,9 @@
 #include "fstab.h"
 #include "configuration.h"
 
+// Do not write anything to the fstab file
+static int dry_run = FALSE;
+
 /* Load STORAGE_CONFIG_PROP from PERSISTENT_PROPERTY_DIR
  * We need to get it earlier than vendor init to make working fstab */
 static void load_storage_config_prop() {
@@ -254,6 +257,9 @@ static int add_fstab_entry(
     const char *mnt_flags,
     const char *fs_mgr_flags)
 {
+    if (dry_run)
+        return TRUE;
+
     int ret = FALSE;
     char *full_part_name = lookup_for_partition(part_name, search_order);
 
@@ -283,8 +289,39 @@ static int add_fstab_entry(
     return (ret < 0 ? ret : 0);
 }
 
+static void emmc_has_usbmsc(void) {
+  ERROR(__func__);
+  property_set(EMMC_HAS_USBMSC_PROP, "true");
+}
+
+static void emmc_has_no_usbmsc(void) {
+  ERROR(__func__);
+  property_set(EMMC_HAS_USBMSC_PROP, "false");
+}
+
+static void sd_has_usbmsc(void) {
+  ERROR(__func__);
+  property_set(SD_HAS_USBMSC_PROP, "true");
+}
+
+static void sd_has_no_usbmsc(void) {
+  ERROR(__func__);
+  property_set(SD_HAS_USBMSC_PROP, "false");
+}
+
+static void sd_has_plain_part(void) {
+  ERROR(__func__);
+  property_set(SD_HAS_PLAIN_PART_PROP, "true");
+}
+
+static void sd_has_no_plain_part(void) {
+  ERROR(__func__);
+  property_set(SD_HAS_PLAIN_PART_PROP, "false");
+}
+
 // Flags:
-// encryptable=userdata - makes storage adoptable. Should not used on bootable SD (because Android will repartition and reformat it)
+// encryptable=userdata - Makes storage adoptable.
+//                        Should not be used on bootable SD (because Android will repartition and reformat it)
 // nonremovable - do not show notifications on volume status changes
 // noemulatedsd - marks primary storage
 
@@ -293,32 +330,56 @@ static int update_regular_classic(int fd, int type, int sdcc_config) {
   ERROR(__func__);
   switch (sdcc_config) {
     case REGULAR:
-      if (check_for_partition(SDCC_1, "usbmsc")) { // on eMMC
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        emmc_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
-        if (check_for_partition(SDCC_2, "usbmsc")) // on SD
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d");
-        else
-          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:auto,encryptable=userdata");
-      } else { // if there is no usbmsc on sdcc.1 (eMMC)
-        if (check_for_partition(SDCC_2, "usbmsc")) // on SD
+        } else if (check_for_partition(SDCC_2, "shared")) {
+          // SD was partitioned with sm partition disk:179,64 mixed command
+          sd_has_usbmsc();
+          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d");
+        } else {
+          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+            // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
+            sd_has_plain_part();
+            ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:auto,encryptable=userdata");
+          }
+        }
+      } else {
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd");
-        else
-          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:auto,encryptable=userdata");
+        } else {
+          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+            // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
+            sd_has_plain_part();
+            ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:auto,encryptable=userdata");
+          }
+        }
       }
       break;
     case INVERTED:
-      if (check_for_partition(SDCC_1, "usbmsc")) {  // on SD
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
-        if (check_for_partition(SDCC_2, "usbmsc"))
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
-      } else { // if there is no usbmsc on sdcc.1 (SD)
-        if (check_for_partition(SDCC_2, "usbmsc")) // usbmsc on eMMC may be only numbered partition, not "auto"
+        }
+      } else {
+        if (check_for_partition(SDCC_2, "usbmsc")) { // usbmsc on eMMC may be only numbered partition, not "auto"
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
+        }
       }
       break;
     case ISOLATED:
-      if (check_for_partition(SDCC_1, "usbmsc"))
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
+      }
       break;
     default:
       break;
@@ -331,26 +392,41 @@ static int update_regular_inverted(int fd, int type, int sdcc_config) {
   ERROR(__func__);
   switch (sdcc_config) {
     case REGULAR:
-      if (check_for_partition(SDCC_2, "usbmsc")) // on SD
+      if (check_for_partition(SDCC_2, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd");
-      else
-        ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:auto,noemulatedsd,encryptable=userdata");
-      if (check_for_partition(SDCC_1, "usbmsc")) // on eMMC
+      } else {
+        if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+          // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
+          sd_has_plain_part();
+          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:auto,noemulatedsd,encryptable=userdata");
+        }
+      }
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        emmc_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
+      }
       break;
     case INVERTED:
-      if (check_for_partition(SDCC_1, "usbmsc")) { // on SD
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
-        if (check_for_partition(SDCC_2, "usbmsc")) // on eMMC
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
-      } else { // if there is no usbmsc on sdcc.1 (SD)
-        if (check_for_partition(SDCC_2, "usbmsc")) // on eMMC
+        }
+      } else {
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
+        }
       }
       break;
     case ISOLATED:
-      if (check_for_partition(SDCC_1, "usbmsc"))
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard0:%d,noemulatedsd,nonremovable");
+      } else
       break;
     default:
       break;
@@ -363,32 +439,52 @@ static int update_regular_datamedia(int fd, int type, int sdcc_config) {
   ERROR(__func__);
     switch (sdcc_config) {
     case REGULAR:
-      if (check_for_partition(SDCC_1, "usbmsc")) { // on eMMC
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        emmc_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
-        if (check_for_partition(SDCC_2, "usbmsc")) // on SD
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:%d");
-        else
-          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:auto,encryptable=userdata");
-      } else { // if there is no usbmsc on sdcc.1 (eMMC)
-        if (check_for_partition(SDCC_2, "usbmsc")) // on SD
+        } else {
+          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+            // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
+            sd_has_plain_part();
+            ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:auto,encryptable=userdata");
+          }
+        }
+      } else {
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d");
-        else
-          ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:auto,encryptable=userdata");
+        } else {
+          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+            // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
+            sd_has_plain_part();
+            ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:auto,encryptable=userdata");
+          }
+        }
       }
       break;
     case INVERTED:
-      if (check_for_partition(SDCC_1, "usbmsc")) {  // on SD
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
-        if (check_for_partition(SDCC_2, "usbmsc"))
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:%d,nonremovable");
-      } else { // if there is no usbmsc on sdcc.1 (SD)
-        if (check_for_partition(SDCC_2, "usbmsc")) // usbmsc on eMMC may be only numbered partition, not "auto"
+        }
+      } else {
+        if (check_for_partition(SDCC_2, "usbmsc")) {
+          emmc_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
+        }
       }
       break;
     case ISOLATED:
-      if (check_for_partition(SDCC_1, "usbmsc"))
+      if (check_for_partition(SDCC_1, "usbmsc")) {
+        sd_has_usbmsc();
         ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.1/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d,nonremovable");
+      }
       break;
     default:
       break;
@@ -401,6 +497,17 @@ static int update_regular_fstab(int fd, int type, int storage_config, int sdcc_c
     int ret = 0;
     ERROR(__func__);
     ERROR("%s: storage_config=%d, sdcc_config=%d\n", __func__, storage_config, sdcc_config);
+
+    // SD have no plain partition if it is bootable
+    if (sdcc_config == INVERTED || sdcc_config == ISOLATED)
+      sd_has_no_plain_part();
+
+    // We have no access to eMMC usbmsc partition in ISOLATED sdcc configuration
+    if (sdcc_config == ISOLATED)
+      emmc_has_no_usbmsc();
+
+    // Perform dry-run pass to set up properties
+    dry_run = TRUE;
     switch (storage_config) {
         case STORAGE_CONFIGURATION_CLASSIC:
             update_regular_classic(fd, type, sdcc_config);
@@ -413,6 +520,67 @@ static int update_regular_fstab(int fd, int type, int storage_config, int sdcc_c
             break;
         default:
             break;
+    }
+
+    // this will fail if props was set already - ro.* props can be set only once
+    emmc_has_no_usbmsc();
+    sd_has_no_usbmsc();
+    sd_has_no_plain_part();
+
+    char tmp[PROP_VALUE_MAX] = {0};
+    property_get(EMMC_HAS_USBMSC_PROP, tmp, "false");
+    int emmc_usbmsc = strcmp(tmp, "false");
+    property_get(SD_HAS_USBMSC_PROP, tmp, "false");
+    int sd_usbmsc = strcmp(tmp, "false");
+    property_get(SD_HAS_PLAIN_PART_PROP, tmp, "false");
+    int sd_plain_part= strcmp(tmp, "false");
+
+    if (storage_config == STORAGE_CONFIGURATION_CLASSIC && !emmc_usbmsc) {
+      ERROR("%s: storage_config=%d is invalid - no usbmsc partition on eMMC found, fixing\n", __func__, storage_config);
+      if (sd_usbmsc || sd_plain_part) {
+        ERROR("%s: SD card can become primary storage, using it\n", __func__);
+        storage_config = STORAGE_CONFIGURATION_INVERTED;
+        sprintf(tmp, "%d", STORAGE_CONFIGURATION_INVERTED);
+        property_set(STORAGE_CONFIG_PROP, tmp);
+      } else {
+        ERROR("%s: SD card can't become primary storage, using datamedia\n", __func__);
+        storage_config = STORAGE_CONFIGURATION_DATAMEDIA;
+        sprintf(tmp, "%d", STORAGE_CONFIGURATION_DATAMEDIA);
+        property_set(STORAGE_CONFIG_PROP, tmp);
+      }
+      ERROR("%s: now storage_config=%d\n", __func__, storage_config);
+    }
+
+    if (storage_config == STORAGE_CONFIGURATION_INVERTED && !sd_usbmsc && !sd_plain_part) {
+      ERROR("%s: storage_config=%d is invalid - no usbmsc or plain data partition on SD found, fixing\n", __func__, storage_config);
+      if (emmc_usbmsc) {
+        ERROR("%s: eMMC usbmsc can become primary storage, using it\n", __func__);
+        storage_config = STORAGE_CONFIGURATION_CLASSIC;
+        sprintf(tmp, "%d", STORAGE_CONFIGURATION_CLASSIC);
+        property_set(STORAGE_CONFIG_PROP, tmp);
+      } else {
+        ERROR("%s: eMMC usbmsc can't become primary storage, using datamedia\n", __func__);
+        storage_config = STORAGE_CONFIGURATION_DATAMEDIA;
+        sprintf(tmp, "%d", STORAGE_CONFIGURATION_DATAMEDIA);
+        property_set(STORAGE_CONFIG_PROP, tmp);
+      }
+      ERROR("%s: now storage_config=%d\n", __func__, storage_config);
+    }
+
+    // Perform real update pass
+    dry_run = FALSE;
+    switch (storage_config) {
+      case STORAGE_CONFIGURATION_CLASSIC:
+        ret = update_regular_classic(fd, type, sdcc_config);
+        break;
+      case STORAGE_CONFIGURATION_INVERTED:
+        ret = update_regular_inverted(fd, type, sdcc_config);
+        break;
+      case STORAGE_CONFIGURATION_DATAMEDIA:
+        ret = update_regular_datamedia(fd, type, sdcc_config);
+        break;
+      default:
+        break;
     }
     return ret;
 }
