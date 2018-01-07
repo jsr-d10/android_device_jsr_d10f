@@ -498,6 +498,14 @@ static int update_regular_fstab(int fd, int type, int storage_config, int sdcc_c
     ERROR(__func__);
     ERROR("%s: storage_config=%d, sdcc_config=%d\n", __func__, storage_config, sdcc_config);
 
+    if (sdcc_config == REGULAR) {
+      if (!check_for_partition(RAWDEV, "mmcblk1")) {
+        ERROR("%s: SD card not found", __func__);
+        sd_has_no_usbmsc();
+        sd_has_no_plain_part();
+      }
+    }
+
     // SD have no plain partition if it is bootable
     if (sdcc_config == INVERTED || sdcc_config == ISOLATED)
       sd_has_no_plain_part();
@@ -508,6 +516,7 @@ static int update_regular_fstab(int fd, int type, int storage_config, int sdcc_c
 
     // Perform dry-run pass to set up properties
     dry_run = TRUE;
+
     switch (storage_config) {
         case STORAGE_CONFIGURATION_CLASSIC:
             update_regular_classic(fd, type, sdcc_config);
