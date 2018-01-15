@@ -717,8 +717,8 @@ static void print_fstab(const char *fstab_name)
    fclose(mf);
 }
 
-int process_fstab_real(const char *fstab_name, const int fd, const int fstab_type, const int storage_config, const int sdcc_config) {
-  int ret;
+int process_fstab_real(const int fd, const int fstab_type, const int storage_config, const int sdcc_config) {
+  int ret = EXIT_FAILURE;
   switch (fstab_type) {
     case FSTAB_TYPE_REGULAR:
       ret = update_regular_fstab(fd, fstab_type, storage_config, sdcc_config);
@@ -796,7 +796,7 @@ int process_fstab(const char *fstab_name, const int fstab_type)
     // Perform dry-run pass to set up properties
     dry_run = TRUE;
     ERROR("%s: Dry_run pass started", __func__);
-    process_fstab_real(fstab_name, fd, fstab_type, storage_config, sdcc_config);
+    process_fstab_real(fd, fstab_type, storage_config, sdcc_config);
     ERROR("%s: Dry_run pass finished", __func__);
 
     // this will fail if props was set already - ro.* props can be set only once
@@ -847,7 +847,7 @@ int process_fstab(const char *fstab_name, const int fstab_type)
     // Perform real update pass
     dry_run = FALSE;
     ERROR("%s: Real update pass started", __func__);
-    process_fstab_real(fstab_name, fd, fstab_type, storage_config, sdcc_config);
+    ret = process_fstab_real(fd, fstab_type, storage_config, sdcc_config);
     ERROR("%s: Real update finished", __func__);
 
     ERROR("FSTAB after processing:\n");
