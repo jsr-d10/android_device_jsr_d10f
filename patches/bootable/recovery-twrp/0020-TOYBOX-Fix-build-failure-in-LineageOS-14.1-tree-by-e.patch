@@ -1,0 +1,28 @@
+From ce72a792e9b25ae9e8f3490fa2ff2d8bb352185f Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sun, 14 Jan 2018 22:40:40 +0300
+Subject: [PATCH 20/21] [TOYBOX] Fix build failure in LineageOS 14.1 tree
+
+Exclude toys/net/microcom.c
+LineageOS 14.1 does not have this file
+
+Change-Id: I3df40333918c3b2f9a3ab6dbeff98b66b9094fad
+---
+ toybox/Android.mk | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/toybox/Android.mk b/toybox/Android.mk
+index 43a893de..1d067ceb 100644
+--- a/toybox/Android.mk
++++ b/toybox/Android.mk
+@@ -238,7 +238,6 @@ LOCAL_SRC_FILES += \
+     toys/android/sendevent.c \
+     toys/android/start.c \
+     toys/net/ifconfig.c \
+-    toys/net/microcom.c \
+     toys/net/netcat.c \
+     toys/net/netstat.c \
+     toys/net/rfkill.c \
+-- 
+2.14.1
+

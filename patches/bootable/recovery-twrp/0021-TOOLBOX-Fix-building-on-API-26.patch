@@ -1,0 +1,41 @@
+From ffee42ffc8fdb021de2028a85781235dfc25167d Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Mon, 15 Jan 2018 02:18:14 +0300
+Subject: [PATCH 21/21] [TOOLBOX] Fix building on API < 26
+
+See https://github.com/omnirom/android_bootable_recovery/issues/203 for details
+
+Change-Id: I8447073b64f116944d856b79368ae181a9227dd0
+---
+ toolbox/Android.mk | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/toolbox/Android.mk b/toolbox/Android.mk
+index b8f4d2e7..9efa966b 100644
+--- a/toolbox/Android.mk
++++ b/toolbox/Android.mk
+@@ -47,14 +47,14 @@ ifeq ($(TW_USE_TOOLBOX), true)
+             $(if $(filter $(PLATFORM_SDK_VERSION), 23 24), du)
+ 
+         OUR_TOOLS := \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; iftop),) \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; ioctl),) \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; nandread),) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo iftop) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo ioctl) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo nandread) \
+             newfs_msdos \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; prlimit),) \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; sendevent),) \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; start),) \
+-            $(if $(shell test $(PLATFORM_SDK_VERSION) -lt 26; stop),) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo prlimit) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo sendevent) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo start) \
++            $(shell test $(PLATFORM_SDK_VERSION) -lt 26 && echo stop) \
+ 
+         ifneq (,$(filter $(PLATFORM_SDK_VERSION), 23))
+             BSD_TOOLS += \
+-- 
+2.14.1
+
