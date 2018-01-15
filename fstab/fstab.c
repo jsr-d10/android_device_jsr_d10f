@@ -446,7 +446,7 @@ static int update_regular_datamedia(int fd, int type, int sdcc_config) {
           sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:%d");
         } else {
-          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+          if ( check_for_partition(RAWDEV, "mmcblk1") && !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
             // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
             sd_has_plain_part();
             ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard2:auto,encryptable=userdata");
@@ -457,7 +457,7 @@ static int update_regular_datamedia(int fd, int type, int sdcc_config) {
           sd_has_usbmsc();
           ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:%d");
         } else {
-          if ( !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
+          if ( check_for_partition(RAWDEV, "mmcblk1") && !check_for_partition(SDCC_2, "system") && (check_for_partition(SDCC_2, "shared") || !check_for_partition(SDCC_2, "android_expand")) ) {
             // SD is not bootable, have "shared" partition (have "mixed" semi-adopted state) or not adopted, so it should be considered as having plain partition
             sd_has_plain_part();
             ret += add_fstab_entry(fd, type, JUST_ADD_IT, "/devices/msm_sdcc.2/mmc_host*", "auto", "auto", "defaults", "voldmanaged=sdcard1:auto,encryptable=userdata");
