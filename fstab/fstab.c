@@ -201,7 +201,7 @@ static int get_partition_number(const char *part_name)
 {
     int part_number = -1;
     char raw_blockdev_name[PROP_VALUE_MAX] = {0};
-    char partition[PROP_VALUE_MAX] = {0};
+    char partition[PROP_VALUE_MAX + 1] = {0};
     int sdcc = -1;
     ERROR("%s: entered, part_name=%s", __func__, part_name);
     if (sscanf(part_name, "/devices/msm_sdcc.%d/mmc_host*", &sdcc) == 1) {
@@ -210,7 +210,11 @@ static int get_partition_number(const char *part_name)
         return get_partition_number(raw_blockdev_name);
     }
 
-    if (sscanf(part_name, "/dev/block/platform/msm_sdcc.%d/by-name/%s", &sdcc, partition) == 2) {
+    // to prevent buffer overflow
+    const char fmt_str1[] = "/dev/block/platform/msm_sdcc.%%d/by-name/%%%ds";
+    char fmt_str2[sizeof(fmt_str1) + 30] = {0};
+    snprintf(fmt_str2, sizeof(fmt_str2), fmt_str1, PROP_VALUE_MAX);
+    if (sscanf(part_name, fmt_str2, &sdcc, partition) == 2) {
       char *full_part_name = lookup_for_partition(partition, sdcc);
       if (full_part_name){
         if (readlink(full_part_name, raw_blockdev_name, PROP_VALUE_MAX) == -1) {
