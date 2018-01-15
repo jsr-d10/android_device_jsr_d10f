@@ -1,7 +1,7 @@
-From d9512091a9566be774e54cae63d7563f875cfce7 Mon Sep 17 00:00:00 2001
+From c005ffaad73bce8cfcd178a5a63984384c2c01f3 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Mon, 13 Mar 2017 20:11:39 +0300
-Subject: [PATCH 09/20] [COMPRESSORS] Add small and naive universal unpacker
+Subject: [PATCH 9/9] [COMPRESSORS] Add small and naive universal unpacker
 
 Works in filter mode only (get compressed from stdin and put unpacked to stdout) via calling appropriate external decompressor binary
 
@@ -14,6 +14,8 @@ LZOP
 XZ
 ZSTD
 LZ4
+
+Change-Id: I3711eb4ad2200337c0a1186f549f3cb0519d38bf
 ---
  Android.mk          |   6 +
  prebuilt/Android.mk |   3 +
@@ -25,10 +27,10 @@ LZ4
  create mode 100644 uunpack/uunpack.c
 
 diff --git a/Android.mk b/Android.mk
-index b5f6d87..569692c 100644
+index b1cf4a46..6ce1b43e 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -463,6 +463,9 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
+@@ -473,6 +473,9 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
          LOCAL_ADDITIONAL_DEPENDENCIES += logd libsysutils libnl init.recovery.logd.rc
      endif
  endif
@@ -38,7 +40,7 @@ index b5f6d87..569692c 100644
  # Allow devices to specify device-specific recovery dependencies
  ifneq ($(TARGET_RECOVERY_DEVICE_MODULES),)
      LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_RECOVERY_DEVICE_MODULES)
-@@ -724,6 +727,9 @@ endif
+@@ -784,6 +787,9 @@ endif
  ifneq ($(TW_OEM_BUILD),true)
      include $(commands_recovery_local_path)/orscmd/Android.mk
  endif
@@ -49,7 +51,7 @@ index b5f6d87..569692c 100644
  # FB2PNG
  ifeq ($(TW_INCLUDE_FB2PNG), true)
 diff --git a/prebuilt/Android.mk b/prebuilt/Android.mk
-index d23c51d..d56fadf 100644
+index 23245e1e..96dfa37b 100644
 --- a/prebuilt/Android.mk
 +++ b/prebuilt/Android.mk
 @@ -30,6 +30,9 @@ else
@@ -63,7 +65,7 @@ index d23c51d..d56fadf 100644
  RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/fsck.fat
  RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/fatlabel
 diff --git a/twrpTar.cpp b/twrpTar.cpp
-index b82c1fc..87574b5 100644
+index b9b91423..61a840d5 100644
 --- a/twrpTar.cpp
 +++ b/twrpTar.cpp
 @@ -734,7 +734,11 @@ int twrpTar::extract() {
@@ -78,7 +80,7 @@ index b82c1fc..87574b5 100644
  		int ret = extractTar();
  		return ret;
  	} else if (current_archive_type == ENCRYPTED) {
-@@ -1250,8 +1254,13 @@ int twrpTar::openTar() {
+@@ -1251,8 +1255,13 @@ int twrpTar::openTar() {
  				dup2(pipes[0], stdinfd);
  				close(stdoutfd);
  				dup2(pipes[3], stdoutfd);
@@ -92,19 +94,19 @@ index b82c1fc..87574b5 100644
  					gui_err("restore_error=Error during restore process.");
  					close(input_fd);
  					close(pipes[0]);
-@@ -1324,7 +1333,11 @@ int twrpTar::openTar() {
+@@ -1325,7 +1334,11 @@ int twrpTar::openTar() {
  	} else if (current_archive_type == COMPRESSED) {
  		int pigzfd[2];
  
 +#ifndef TW_NO_ADVANCED_COMPRESSION
-+		LOGINFO("Opening as a compressed...\n");
++		LOGINFO("Opening compressed tar...\n");
 +#else
- 		LOGINFO("Opening as a gzip...\n");
+ 		LOGINFO("Opening gzip compressed tar...\n");
 +#endif
  		if (part_settings->adbbackup)  {
  			LOGINFO("opening TW_ADB_RESTORE compressed stream\n");
  			input_fd = open(TW_ADB_RESTORE, O_RDONLY | O_LARGEFILE);
-@@ -1357,7 +1370,13 @@ int twrpTar::openTar() {
+@@ -1358,7 +1371,13 @@ int twrpTar::openTar() {
  			close(pigzfd[0]);
  			dup2(pigzfd[1], fileno(stdout)); // remap stdout
  			dup2(input_fd, fileno(stdin)); // remap input fd to stdin
@@ -120,7 +122,7 @@ index b82c1fc..87574b5 100644
  				LOGINFO("execlp openaes ERROR!\n");
 diff --git a/uunpack/Android.mk b/uunpack/Android.mk
 new file mode 100644
-index 0000000..561e2b6
+index 00000000..561e2b6e
 --- /dev/null
 +++ b/uunpack/Android.mk
 @@ -0,0 +1,13 @@
@@ -139,7 +141,7 @@ index 0000000..561e2b6
 +include $(BUILD_EXECUTABLE)
 diff --git a/uunpack/uunpack.c b/uunpack/uunpack.c
 new file mode 100644
-index 0000000..0932df4
+index 00000000..0932df47
 --- /dev/null
 +++ b/uunpack/uunpack.c
 @@ -0,0 +1,310 @@
@@ -454,5 +456,5 @@ index 0000000..0932df4
 +	exit(EXIT_SUCCESS);
 +}
 -- 
-2.10.2
+2.14.1
 

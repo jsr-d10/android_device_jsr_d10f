@@ -1,4 +1,4 @@
-From a47a2d744e639841fdf2bf4c8bdee62bb3f6d1cd Mon Sep 17 00:00:00 2001
+From f8f44d92e3baaf6dd8360f59251a914b54de5f43 Mon Sep 17 00:00:00 2001
 From: S-trace <S-trace@list.ru>
 Date: Mon, 13 Mar 2017 19:17:51 +0300
 Subject: [PATCH 8/8] [COMPRESSORS] Allow user to fine tune pigz compression
@@ -26,10 +26,10 @@ Change-Id: Id249d8f8c25ffae45ab07edc94ce531b3ed0f2c7
  17 files changed, 292 insertions(+), 1 deletion(-)
 
 diff --git a/Android.mk b/Android.mk
-index d9d7b288..cfa57a28 100644
+index 0c305824..b1cf4a46 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -355,6 +355,9 @@ ifneq ($(TW_DEFAULT_LANGUAGE),)
+@@ -366,6 +366,9 @@ ifneq ($(TW_DEFAULT_LANGUAGE),)
  else
      LOCAL_CFLAGS += -DTW_DEFAULT_LANGUAGE=en
  endif
@@ -40,7 +40,7 @@ index d9d7b288..cfa57a28 100644
  LOCAL_ADDITIONAL_DEPENDENCIES += \
      dump_image \
 diff --git a/data.cpp b/data.cpp
-index 02d003c8..caddf466 100644
+index 8c6eb5a1..1f4e3a53 100644
 --- a/data.cpp
 +++ b/data.cpp
 @@ -582,6 +582,12 @@ void DataManager::SetDefaultValues()
@@ -68,7 +68,7 @@ index 02d003c8..caddf466 100644
  	mPersist.SetValue(TW_GUI_SORT_ORDER, "1");
  	mPersist.SetValue(TW_RM_RF_VAR, "0");
 diff --git a/gui/action.cpp b/gui/action.cpp
-index a3951582..9b7c034c 100644
+index 3d497ca5..4a96a6a6 100644
 --- a/gui/action.cpp
 +++ b/gui/action.cpp
 @@ -174,6 +174,7 @@ GUIAction::GUIAction(xml_node<>* node)
@@ -79,7 +79,7 @@ index a3951582..9b7c034c 100644
  		ADD_ACTION(overlay);
  		ADD_ACTION(queuezip);
  		ADD_ACTION(cancelzip);
-@@ -743,6 +744,14 @@ int GUIAction::setguitimezone(std::string arg __unused)
+@@ -744,6 +745,14 @@ int GUIAction::setguitimezone(std::string arg __unused)
  	return 0;
  }
  
@@ -107,10 +107,10 @@ index 630cf710..2b776aea 100644
  	int queuezip(std::string arg);
  	int cancelzip(std::string arg);
 diff --git a/gui/theme/common/landscape.xml b/gui/theme/common/landscape.xml
-index 0b8860e2..4c098eea 100644
+index f460e6fe..6e7af2aa 100644
 --- a/gui/theme/common/landscape.xml
 +++ b/gui/theme/common/landscape.xml
-@@ -1686,6 +1686,20 @@
+@@ -1687,6 +1687,20 @@
  				<data variable="tw_disable_free_space"/>
  			</checkbox>
  
@@ -131,7 +131,7 @@ index 0b8860e2..4c098eea 100644
  			<button style="main_button_half_width">
  				<condition var1="tw_enable_adb_backup" op="!=" var2="1"/>
  				<placement x="%col1_x_left%" y="%row15a_y%"/>
-@@ -1721,6 +1735,54 @@
+@@ -1722,6 +1736,54 @@
  			</action>
  		</page>
  
@@ -187,11 +187,11 @@ index 0b8860e2..4c098eea 100644
  			<action>
  				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
 diff --git a/gui/theme/common/languages/en.xml b/gui/theme/common/languages/en.xml
-index e5f83b82..e20df1ec 100644
+index c4f21e28..15fc0b88 100644
 --- a/gui/theme/common/languages/en.xml
 +++ b/gui/theme/common/languages/en.xml
 @@ -218,6 +218,10 @@
- 		<string name="disable_backup_space_chk" version="2">Disable free space check before backup</string>
+ 		<string name="enable_backup_comp_chk">Enable compression</string>
  		<string name="skip_digest_backup_chk" version="2">Skip Digest generation during backup</string>
  		<string name="disable_backup_space_chk" version="2">Disable free space check before backup</string>
 +		<string name="select_compressor_btn">Select compressor</string>
@@ -217,10 +217,10 @@ index 0b43bc24..5a24fe36 100644
  		<string name="boot_slot_a">Слот A</string>
  		<string name="boot_slot_b">Слот B</string>
 diff --git a/gui/theme/common/portrait.xml b/gui/theme/common/portrait.xml
-index b0a16607..838a294d 100644
+index 0d1d6d8a..7b13a202 100644
 --- a/gui/theme/common/portrait.xml
 +++ b/gui/theme/common/portrait.xml
-@@ -1721,6 +1721,17 @@
+@@ -1722,6 +1722,17 @@
  				<data variable="tw_disable_free_space"/>
  			</checkbox>
  
@@ -238,7 +238,7 @@ index b0a16607..838a294d 100644
  			<text style="text_m">
  				<condition var1="tw_has_boot_slots" var2="1"/>
  				<placement x="%center_x%" y="%row17_y%" placement="5"/>
-@@ -1770,6 +1781,54 @@
+@@ -1771,6 +1782,54 @@
  			</action>
  		</page>
  
@@ -294,13 +294,14 @@ index b0a16607..838a294d 100644
  			<action>
  				<condition var1="tw_backup_name" op="=" var2="{@auto_generate=(Auto Generate)}"/>
 diff --git a/gui/theme/common/watch.xml b/gui/theme/common/watch.xml
-index b143d4ab..4fba137a 100644
+index 152818e7..e350a8f1 100644
 --- a/gui/theme/common/watch.xml
 +++ b/gui/theme/common/watch.xml
 @@ -2034,6 +2034,18 @@
+ 				</listitem>
  			</listbox>
  
- 			<button>
++			<button>
 +				<condition var1="tw_advanced_compression" var2="1" />
 +				<condition var1="tw_use_compression" var2="1" />
 +				<placement x="%btn4_col3_x%" y="%row11_y%"/>
@@ -312,11 +313,10 @@ index b143d4ab..4fba137a 100644
 +				</actions>
 +			</button>
 +
-+			<button>
+ 			<button>
  				<placement x="%col1_x_left%" y="%row11_y%"/>
  				<highlight color="%highlight_color%"/>
- 				<image resource="q_btn_arrow_left"/>
-@@ -2098,6 +2110,75 @@
+@@ -2099,6 +2111,75 @@
  			</action>
  		</page>
  
@@ -453,7 +453,7 @@ index 491de1c4..cac0a535 100644
  		<variable name="listbox_settings_height" value="248"/>
  		<variable name="fastscroll_w" value="10"/>
 diff --git a/twrpTar.cpp b/twrpTar.cpp
-index aa00044d..ce764496 100644
+index d15eea6b..b9b91423 100644
 --- a/twrpTar.cpp
 +++ b/twrpTar.cpp
 @@ -891,6 +891,47 @@ int twrpTar::addFilesToExistingTar(vector <string> files, string fn) {
@@ -554,7 +554,7 @@ index b07b06f4..edf9ba74 100644
  	int addFile(string fn, bool include_root);
  	int entryExists(string entry);
 diff --git a/variables.h b/variables.h
-index bcf228c4..48935efa 100644
+index 7d8b7392..60091d3a 100644
 --- a/variables.h
 +++ b/variables.h
 @@ -97,6 +97,7 @@
@@ -566,5 +566,5 @@ index bcf228c4..48935efa 100644
  #define TW_HAS_INTERNAL             "tw_has_internal"
  #define TW_INTERNAL_PATH            "tw_internal_path"         // /data/media or /internal
 -- 
-2.11.0
+2.14.1
 
