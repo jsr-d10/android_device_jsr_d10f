@@ -146,6 +146,11 @@ ifeq ($(RECOVERY_VARIANT), twrp)
 		vendor/jsr/security/cm-12.1/releasekey \
 		vendor/jsr/security/cm-13.0/releasekey \
 		vendor/jsr/security/cm-14.1/releasekey \
+		vendor/jsr/security/lineage-15.0/releasekey \
+		vendor/jsr/security/MIUI7K/releasekey \
+		vendor/jsr/security/MIUI8K/releasekey \
+		vendor/jsr/security/MIUI8M/platform \
+		vendor/jsr/security/MIUI9M/platform \
 		build/target/product/security/testkey
 endif
 
