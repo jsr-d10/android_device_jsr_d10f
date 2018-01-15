@@ -14,6 +14,4 @@
 /fsc      emmc /dev/block/platform/msm_sdcc.1/by-name/fsc       flags=backup=1;subpartitionof=/efs1
 /sdi      emmc /dev/block/platform/msm_sdcc.1/by-name/sdi       flags=backup=1;display="SDI"
 /misc     emmc /dev/block/platform/msm_sdcc.1/by-name/misc
-/full     emmc /dev/block/mmcblk0                               flags=backup=1;display="eMMC"
-/rpmb     emmc /dev/block/mmcblk0rpmb                           flags=backup=1;subpartitionof=/full
 /usb-otg  vfat /dev/block/sda1 /dev/block/sda                   flags=display="USB OTG";storagename="USB OTG";storage;wipeingui;removable;fsflags=utf8
