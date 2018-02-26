@@ -60,6 +60,6 @@ sh device/jsr/d10f/update-overlay.sh
 
 rm -f out/target/product/d10f/system/build.prop out/target/product/d10f/boot/root/default.prop out/target/product/d10f/recovery/root/default.prop
 
-add_lunch_combo cm_d10f-user
-add_lunch_combo cm_d10f-userdebug
-add_lunch_combo cm_d10f-eng
+add_lunch_combo lineage_d10f-user
+add_lunch_combo lineage_d10f-userdebug
+add_lunch_combo lineage_d10f-eng
