@@ -74,9 +74,9 @@ public class KeyHandler implements DeviceKeyHandler
     Slog.i(TAG, "Init com.cyanogenmod.keyhandler");
   }
 
-  public boolean handleKeyEvent(KeyEvent event)
+  public KeyEvent handleKeyEvent(KeyEvent event)
   {
-    boolean consumed = false;
+    KeyEvent consumed = event;
     switch (event.getKeyCode()) {
     case KeyEvent.KEYCODE_FUNCTION:
       if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -107,7 +107,7 @@ public class KeyHandler implements DeviceKeyHandler
           } else {
             cameraAction.actionEx(uri);
           }
-          consumed = true;
+          consumed = null;
         }        
       }
     }
