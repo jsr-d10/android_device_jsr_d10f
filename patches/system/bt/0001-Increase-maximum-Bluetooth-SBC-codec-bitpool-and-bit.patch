@@ -1,0 +1,91 @@
+From 7620ac35249421503d9954f8dc7159c23fd94449 Mon Sep 17 00:00:00 2001
+From: ValdikSS <iam@valdikss.org.ru>
+Date: Fri, 21 Sep 2018 13:53:11 +0300
+Subject: [PATCH 1/2] Increase maximum Bluetooth SBC codec bitpool and bitrate
+ values
+
+This commit increases maximum available bitpool value to 76 and maximum
+possible bitrate to 455 kbit/s for 44.1 kHz, 496 kbit/s for 48 kHz, which is
+optimal for both EDR 2 mbit/s (4 audio frames, 11.7 ms, 2 wasted bytes) and EDR
+3 mbit/s (6 audio frames, 17.5 ms, 14 wasted bytes).
+
+A2DP specification v1.2 states that all decoding devices (SNKs) should support
+bitrates up to 512 kbit/s, and, in fact, some headphone manufacturers set
+maximum bitpool values higher than 53.
+
+Test: manual, with various headphones, receivers, and speakers
+Change-Id: I5c9dec8848a8017da5b1fc6a5edfbbea5bdcb7eb
+---
+ bta/av/bta_av_aact.c       | 6 +-----
+ btif/co/bta_av_co.c        | 6 +-----
+ btif/src/btif_media_task.c | 8 ++++----
+ 3 files changed, 6 insertions(+), 14 deletions(-)
+
+diff --git a/bta/av/bta_av_aact.c b/bta/av/bta_av_aact.c
+index 65eb4340e..04fca0e37 100644
+--- a/bta/av/bta_av_aact.c
++++ b/bta/av/bta_av_aact.c
+@@ -72,11 +72,7 @@ extern BOOLEAN is_sniff_disabled;
+ 
+ static const size_t SBC_MAX_BITPOOL_OFFSET = 6;
+ 
+-#ifdef BTA_AV_SPLIT_A2DP_DEF_FREQ_48KHZ
+-static const size_t SBC_MAX_BITPOOL = 51;
+-#else
+-static const size_t SBC_MAX_BITPOOL = 53;
+-#endif
++static const size_t SBC_MAX_BITPOOL = 76;
+ 
+ /* ACL quota we are letting FW use for A2DP Offload Tx. */
+ #define BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA      4
+diff --git a/btif/co/bta_av_co.c b/btif/co/bta_av_co.c
+index 39a8ebfa7..58d6e5455 100644
+--- a/btif/co/bta_av_co.c
++++ b/btif/co/bta_av_co.c
+@@ -76,11 +76,7 @@
+ #define BTA_AV_CO_SBC_MIN_BITPOOL_OFF  5
+ #define BTA_AV_CO_SBC_MAX_BITPOOL_OFF  6
+ 
+-#ifdef BTA_AV_SPLIT_A2DP_DEF_FREQ_48KHZ
+-#define BTA_AV_CO_SBC_MAX_BITPOOL  51
+-#else
+-#define BTA_AV_CO_SBC_MAX_BITPOOL  53
+-#endif
++#define BTA_AV_CO_SBC_MAX_BITPOOL 76
+ 
+ /* SCMS-T protect info */
+ const UINT8 bta_av_co_cp_scmst[BTA_AV_CP_INFO_LEN] = "\x02\x02\x00";
+diff --git a/btif/src/btif_media_task.c b/btif/src/btif_media_task.c
+index 977d2668d..cac0c2211 100644
+--- a/btif/src/btif_media_task.c
++++ b/btif/src/btif_media_task.c
+@@ -208,13 +208,13 @@ enum {
+ #endif
+ 
+ #ifdef BTA_AV_SPLIT_A2DP_DEF_FREQ_48KHZ
+-#define BTIF_A2DP_DEFAULT_BITRATE 345
++#define BTIF_A2DP_DEFAULT_BITRATE 496
+ 
+ #ifndef BTIF_A2DP_NON_EDR_MAX_RATE
+ #define BTIF_A2DP_NON_EDR_MAX_RATE 237
+ #endif
+ #else
+-#define BTIF_A2DP_DEFAULT_BITRATE 328
++#define BTIF_A2DP_DEFAULT_BITRATE 455
+ 
+ #ifndef BTIF_A2DP_NON_EDR_MAX_RATE
+ #define BTIF_A2DP_NON_EDR_MAX_RATE 229
+@@ -227,8 +227,8 @@ enum {
+ #else
+ #define A2DP_HDR_SIZE               1
+ #endif
+-#define MAX_SBC_HQ_FRAME_SIZE_44_1  119
+-#define MAX_SBC_HQ_FRAME_SIZE_48    115
++#define MAX_SBC_HQ_FRAME_SIZE_44_1  165
++#define MAX_SBC_HQ_FRAME_SIZE_48    165
+ 
+ /* 2DH5 payload size of 679 bytes - (4 bytes L2CAP Header + 12 bytes AVDTP Header) */
+ #define MAX_2MBPS_AVDTP_MTU         663
+-- 
+2.17.1
+
