@@ -1,0 +1,44 @@
+From bc33a980d6b46dbff1dc0f6c31b26e4e66182f5a Mon Sep 17 00:00:00 2001
+From: S-trace <S-trace@list.ru>
+Date: Sat, 22 Sep 2018 20:58:41 +0300
+Subject: [PATCH 3/3] [SBC] Allow user to force specific bitrate for SBC
+
+Example (run as root):
+setprop persist.bt.sbc_hd_force_kbps 607
+
+To apply new settings just run setprop, then pause music,
+wait for 4 seconds and unpause music.
+See https://btcodecs.valdikss.org.ru/sbc-bitrate-calculator/ for details and bitrates
+
+Change-Id: I632644cc02b6d7c0f465c35908ac6c7d573f9331
+---
+ btif/src/btif_media_task.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/btif/src/btif_media_task.c b/btif/src/btif_media_task.c
+index 4c956bd3c..e7505f476 100644
+--- a/btif/src/btif_media_task.c
++++ b/btif/src/btif_media_task.c
+@@ -116,6 +116,7 @@ OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
+ #endif
+ 
+ #define A2DP_SBC_HD_PROP "persist.bt.sbc_hd_higher_kbps"
++#define A2DP_SBC_HD_FORCE_RATE_PROP "persist.bt.sbc_hd_force_kbps"
+ 
+ 
+ /*****************************************************************************
+@@ -1268,6 +1269,11 @@ static UINT16 btif_media_task_get_sbc_rate(void)
+         rate = BTIF_A2DP_2DH5_ALT_BITRATE;
+     }
+ 
++    int forced_rate = property_get_int32(A2DP_SBC_HD_FORCE_RATE_PROP, 0);
++    if (forced_rate) {
++        rate = forced_rate;
++        APPL_TRACE_WARNING("Bitrate was forced to %d kbps!", rate);
++    }
+     return rate;
+ }
+ 
+-- 
+2.17.1
+
